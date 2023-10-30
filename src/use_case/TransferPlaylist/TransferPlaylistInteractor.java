@@ -1,7 +1,7 @@
 package use_case.TransferPlaylist;
 
-public class TransferPlaylistInteractor implements TransferPlaylistInputBoundary{
-    final TransferPlaylistDataAccessInterface playlistDataAccessInterface;
+public class TransferPlaylistInteractor extends TransferPlaylistInputBoundary {
+    final TransferPlaylistDataAccessInterface playlistDataAccessObject;
     final TransferPlaylistOutputBoundary playlistPresenter;
 
     public TransferPlaylistInteractor(TransferPlaylistDataAccessInterface playlistDataAccessInterface,
