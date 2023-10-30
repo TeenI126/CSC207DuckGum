@@ -1,2 +1,4 @@
-package use_case.TransferPlaylist;public class TransferPlaylistInputData {
+package use_case.TransferPlaylist;
+
+public class TransferPlaylistInputData {
 }

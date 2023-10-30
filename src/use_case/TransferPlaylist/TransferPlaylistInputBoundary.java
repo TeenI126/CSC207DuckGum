@@ -1,4 +1,4 @@
 package use_case.TransferPlaylist;
 
-public class TransferPlaylistInputBoundary {
+public interface TransferPlaylistInputBoundary {
 }
