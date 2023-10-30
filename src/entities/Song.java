@@ -6,7 +6,13 @@ public class Song {
     public String artist;
     public String trackName;
 
-    public String getID() {
+    public Song(String id, String artist, String trackName) {
+        this.id = id;
+        this.artist = artist;
+        this.trackName = trackName;
+    }
+
+    public String getId() {
         return id;
     }
 
