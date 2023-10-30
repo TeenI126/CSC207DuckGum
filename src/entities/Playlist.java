@@ -7,5 +7,6 @@ public class Playlist {
 
     public void addSong(Song song){
         //TODO
+        songs.add(song);
     }
 }
