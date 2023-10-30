@@ -1,5 +1,8 @@
 package entities;
 
-public class Account {
+public abstract class Account {
 
+    public Playlist getPlaylist(){
+        return null;
+    }
 }
