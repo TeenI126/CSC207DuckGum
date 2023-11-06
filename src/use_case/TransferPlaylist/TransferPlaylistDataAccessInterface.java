@@ -1,2 +1,4 @@
-package use_case.TransferPlaylist;public interface TransferPlaylistDataAccessInterface {
+package use_case.TransferPlaylist;
+
+public interface TransferPlaylistDataAccessInterface {
 }
