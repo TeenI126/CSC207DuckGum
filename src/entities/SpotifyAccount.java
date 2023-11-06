@@ -2,8 +2,6 @@ package entities;
 
 import okhttp3.*;
 import org.json.*;
-import org.jsoup.Connection;
-
 import java.io.IOException;
 import java.util.Base64;
 
@@ -13,19 +11,17 @@ public class SpotifyAccount extends Account{
     private final String url = "https://accounts.spotify.com/api/";
     private String token = null;
     SpotifyAccount(){
-        OkHttpClient client = new OkHttpClient().newBuilder().build();
-        Request request = new Request.Builder().url("").addHeader("")
+
     }
 
     private void authorize(){
-        OkHttpClient client = new OkHttpClient().newBuilder().build();
-        Request request = new Request.Builder().url(url + "authorize")
+
     }
 
     private void updateToken(){
         MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
         OkHttpClient client = new OkHttpClient().newBuilder().build();
-        RequestBody body = RequestBody.create(mediaType, "grant_type:client_credentials")
+        RequestBody body = RequestBody.create(mediaType, "grant_type:client_credentials");
         Request request = new Request.Builder().url(url+"token")
                 .method("POST",body)
                 .addHeader("Authorization", "Basic" + Base64.getEncoder().encodeToString((clientID+":"+clientSecret).getBytes()))
