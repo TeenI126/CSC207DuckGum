@@ -12,6 +12,7 @@ public class TestSpotifyAccount {
     }
     @Test
     public void TestAuthorize(){
-        spotifyAccount.authorize();
+        spotifyAccount.openLoginPage(true);
+
     }
 }

@@ -13,17 +13,30 @@ public class SpotifyAccount extends Account{
     private String clientSecret = "5bfa9aa652c5461d98fcc235842cbc6c";
     private final String url = "https://accounts.spotify.com/api/";
     private final String redirectURI = "https://github.com/TeenI126/CSC207DuckGum";
-    private String token = null;
+    private String accessToken = null;
+    private String refreshToken = null;
+
     SpotifyAccount(){
 
     }
+    void openLoginPage(){
+        openLoginPage(false);
+    }
 
-    void authorize(){
+    /**
+     *
+     * @param forceLogin: TRUE - makes user sign in regardless if DuckGum has already been authorized.
+     */
+    void openLoginPage(boolean forceLogin){
         JSONObject params = new JSONObject();
-        params.put("client_id", clientID);
-                params.put("response_type", "code")
+        params.put("client_id", clientID)
+                .put("response_type", "code")
                 .put("redirect_uri", redirectURI)
                 .put("scope", "user-read-private user-read-email");
+        if (forceLogin){
+            params.put("show_dialog", "true");
+        }
+
 
         try {
             Desktop.getDesktop()
@@ -32,6 +45,69 @@ public class SpotifyAccount extends Account{
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * TEMPORARY MEASURE, after a user logs into their spotify account, they will be redirected to a URI containing
+     * a code linked to a user that can be exchanged for a token.
+     *
+     * @param uri
+     */
+    public String getCodeFromURI(String uri){
+        //remove base uri, leaving extension with code left.
+        String baseURIRemoved = uri.replaceAll(redirectURI + "?","");
+        String code = baseURIRemoved.replaceAll("code=","");
+        return code;
+    }
+
+    /**
+     *
+     * @return String with user's access token, which can be used to do various actions through API
+     * @throws NoAccessTokenException, happens when the users login is no longer active and needs to log in via url from
+     * openLoginPage()
+     */
+    public String getUserAccessToken() throws NoAccessTokenException {
+        if (accessToken == null){
+            throw new NoAccessTokenException();
+        }
+        return "";
+    }
+
+    private boolean isUserAccessTokenValid(){
+        //TODO
+        return true;
+    }
+
+    public void createNewUserAccessToken(String code){
+
+        OkHttpClient client = new OkHttpClient().newBuilder().build();
+        RequestBody body = RequestBody.create(
+                "grant_type:authorization_code&code="+code+"&redirect_uri="+redirectURI,
+                MediaType.parse("application/x-www-form-urlencoded")
+        );
+
+        Request request = new Request.Builder().url(url + "token")
+                .addHeader(
+                        "Authorization","Basic " +
+                                Base64.getEncoder().encodeToString((clientID+":"+clientSecret).getBytes())
+                )
+                .addHeader("Content-Type", "application/x-www-form-urlencoded")
+                .method("POST",body)
+                .build();
+
+
+        JSONObject responseJSON;
+        try {
+            Response response = client.newCall(request).execute();
+            responseJSON = new JSONObject(response.body().string());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        //TODO handle not status 200 messages like a failed log in.
+        accessToken = responseJSON.getString("access_token");
+        refreshToken = responseJSON.getString("refresh_token");
+
+
     }
 
     private String encodeJSON(JSONObject jsonObject){
@@ -47,6 +123,9 @@ public class SpotifyAccount extends Account{
         return retString.toString().replaceAll(" ","+");
     }
 
+    /**
+     * This is for an application token NOT linked to a user
+     */
     void updateToken(){
 
         MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
@@ -62,10 +141,12 @@ public class SpotifyAccount extends Account{
             Response response = client.newCall(request).execute();
             JSONObject responseJSON = new JSONObject(response.body().string());
 
-            token = responseJSON.getString("access_token");
+            accessToken = responseJSON.getString("access_token");
 
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
+
+    class NoAccessTokenException extends Exception{}
 }
