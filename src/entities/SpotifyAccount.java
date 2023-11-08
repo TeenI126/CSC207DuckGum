@@ -1,20 +1,30 @@
 package entities;
 
+import Secrets.Secrets;
 import okhttp3.*;
 import org.json.*;
 import java.io.IOException;
 import java.net.URI;
+import java.time.LocalDateTime;
+import java.time.temporal.Temporal;
+import java.time.temporal.TemporalUnit;
 import java.util.Base64;
 import java.awt.Desktop;
 import java.util.Iterator;
 
-public class SpotifyAccount extends Account{
+public class SpotifyAccount extends MusicService{
     private String clientID = "b273f4e8f44d44168fe8c86492e95f86";
-    private String clientSecret = "5bfa9aa652c5461d98fcc235842cbc6c";
+    private String clientSecret = Secrets.spotifyClientSecret;
     private final String url = "https://accounts.spotify.com/api/";
     private final String redirectURI = "https://github.com/TeenI126/CSC207DuckGum";
     private String accessToken = null;
     private String refreshToken = null;
+    private LocalDateTime accessTokenExpires = null;
+
+    // USER DETAILS
+    private String displayName;
+    private String userID;
+
 
     SpotifyAccount(){
 
@@ -55,9 +65,7 @@ public class SpotifyAccount extends Account{
      */
     public String getCodeFromURI(String uri){
         //remove base uri, leaving extension with code left.
-        String baseURIRemoved = uri.replaceAll(redirectURI + "?","");
-        String code = baseURIRemoved.replaceAll("code=","");
-        return code;
+        return uri.substring(47);
     }
 
     /**
@@ -69,8 +77,15 @@ public class SpotifyAccount extends Account{
     public String getUserAccessToken() throws NoAccessTokenException {
         if (accessToken == null){
             throw new NoAccessTokenException();
+        } else if (accessTokenExpires.isAfter(LocalDateTime.now())) {
+            refreshAccessToken();
+            return accessToken;
+        } else {
+            return accessToken;
         }
-        return "";
+    }
+
+    private void refreshAccessToken() {
     }
 
     private boolean isUserAccessTokenValid(){
@@ -82,11 +97,12 @@ public class SpotifyAccount extends Account{
 
         OkHttpClient client = new OkHttpClient().newBuilder().build();
         RequestBody body = RequestBody.create(
-                "grant_type:authorization_code&code="+code+"&redirect_uri="+redirectURI,
+                "grant_type=authorization_code&code="+code+"&redirect_uri="+redirectURI,
                 MediaType.parse("application/x-www-form-urlencoded")
         );
 
-        Request request = new Request.Builder().url(url + "token")
+        Request request = new Request.Builder()
+                .url(url + "token")
                 .addHeader(
                         "Authorization","Basic " +
                                 Base64.getEncoder().encodeToString((clientID+":"+clientSecret).getBytes())
@@ -106,10 +122,31 @@ public class SpotifyAccount extends Account{
         //TODO handle not status 200 messages like a failed log in.
         accessToken = responseJSON.getString("access_token");
         refreshToken = responseJSON.getString("refresh_token");
+        accessTokenExpires = LocalDateTime.now().plusSeconds(responseJSON.getInt("expires_in")-60);
 
 
     }
 
+    private void updateSpotifyInformation() throws NoAccessTokenException {
+        OkHttpClient client = new OkHttpClient().newBuilder().build();
+
+        Request request = new Request.Builder()
+                .addHeader("Authorization", "Bearer " + getUserAccessToken())
+                .url("https://api.spotify.com/v1/me")
+                .method("GET",null)
+                .build();
+
+        JSONObject responseJSON;
+        try {
+            Response response = client.newCall(request).execute();
+            responseJSON = new JSONObject(response.body().string());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        userID = responseJSON.getString("id");
+        displayName = responseJSON.getString("display_name");
+
+    }
     private String encodeJSON(JSONObject jsonObject){
         StringBuilder retString = new StringBuilder();
 
@@ -147,6 +184,5 @@ public class SpotifyAccount extends Account{
             throw new RuntimeException(e);
         }
     }
-
     class NoAccessTokenException extends Exception{}
 }
