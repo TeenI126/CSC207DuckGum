@@ -21,3 +21,7 @@ using 17 as jdk
    - have the user copy the entire url and paste it back into the program
    - use `getCodeFromURI(String uri)` to extract code from uri, and pass that into `createUserAccessToken(String code)`
      - This will create codes for SpotifyAccount, that will be allow various other methods to work.
+
+## Entities
+### Songs
+ - We wil be using ISRC codes for our songs (for now), Spotify and Amazon include these in their track objects
