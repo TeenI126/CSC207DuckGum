@@ -1,12 +1,21 @@
 package entities;
 
+import java.util.ArrayList;
 import java.util.List;
 
+/**
+ *
+ */
 public class Playlist {
+
+    private String name;
     private List<Song> songs;
 
-    public Playlist(List<Song> songs) {
-        this.songs = songs;
+    private String id;
+
+    public Playlist(String name) {
+        this.name = name;
+        songs = new ArrayList<Song>();
     }
     public void addSong(Song song){
         //TODO
@@ -20,6 +29,10 @@ public class Playlist {
                 songs.remove(i);
             }
         }
+    }
+
+    public String getName() {
+        return name;
     }
 
     public boolean isPlaylistEmpty() {

@@ -1,16 +1,17 @@
 package entities;
 
 import Secrets.Secrets;
+import entities.Builders.SongFactory;
 import okhttp3.*;
 import org.json.*;
 import java.io.IOException;
 import java.net.URI;
 import java.time.LocalDateTime;
-import java.time.temporal.Temporal;
-import java.time.temporal.TemporalUnit;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.awt.Desktop;
 import java.util.Iterator;
+import java.util.List;
 
 public class SpotifyAccount extends MusicService{
     private String clientID = "b273f4e8f44d44168fe8c86492e95f86";
@@ -42,7 +43,7 @@ public class SpotifyAccount extends MusicService{
         params.put("client_id", clientID)
                 .put("response_type", "code")
                 .put("redirect_uri", redirectURI)
-                .put("scope", "user-read-private user-read-email");
+                .put("scope", "user-read-private user-read-email playlist-read-private playlist-read-collaborative");
         if (forceLogin){
             params.put("show_dialog", "true");
         }
@@ -123,6 +124,11 @@ public class SpotifyAccount extends MusicService{
         accessToken = responseJSON.getString("access_token");
         refreshToken = responseJSON.getString("refresh_token");
         accessTokenExpires = LocalDateTime.now().plusSeconds(responseJSON.getInt("expires_in")-60);
+        try {
+            updateSpotifyInformation();
+        } catch (NoAccessTokenException e) {
+            throw new RuntimeException(e);
+        }
 
 
     }
@@ -146,6 +152,74 @@ public class SpotifyAccount extends MusicService{
         userID = responseJSON.getString("id");
         displayName = responseJSON.getString("display_name");
 
+    }
+
+    public List<Playlist> getPlaylists() throws NoAccessTokenException {
+        OkHttpClient client = new OkHttpClient().newBuilder().build();
+
+        Request request = new Request.Builder()
+                .url("https://api.spotify.com/v1/users/"+userID+"/playlists")
+                .method("GET",null)
+                .addHeader("Authorization", "Bearer " + getUserAccessToken())
+                .build();
+
+        JSONObject responseJSON;
+        try {
+            Response response = client.newCall(request).execute();
+            responseJSON = new JSONObject(response.body().string());
+
+            if (!response.isSuccessful()){
+                throw new RuntimeException();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        List<Playlist> returnPlaylists = new ArrayList<Playlist>();
+        JSONArray rawPlaylists = responseJSON.getJSONArray("items");
+
+        for (int i = 0; i < rawPlaylists.length(); i++){
+            JSONObject p = rawPlaylists.getJSONObject(i);
+            returnPlaylists.add(getPlaylist(p.getString("href")));
+
+        }
+        return returnPlaylists;
+        //TODO overflowed responses
+    }
+
+    public Playlist getPlaylist(String spotifyPlaylistHref) throws NoAccessTokenException {
+        OkHttpClient client = new OkHttpClient().newBuilder().build();
+
+        Request request = new Request.Builder()
+                .url(spotifyPlaylistHref)
+                .method("GET",null)
+                .addHeader("Authorization", "Bearer " + getUserAccessToken())
+                .build();
+
+        JSONObject responseJSON;
+        try {
+            Response response = client.newCall(request).execute();
+            responseJSON = new JSONObject(response.body().string());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        JSONObject tracks = responseJSON.getJSONObject("tracks");
+        JSONArray items = tracks.getJSONArray("items");
+        // Making song object to add to playlist
+
+        Playlist p = new Playlist(responseJSON.getString("name"));
+        for (int i = 0; i < items.length();i++){
+            try{
+                p.addSong(SongFactory.songFromSpotifyTrackJSONObject(items.getJSONObject(i).getJSONObject("track")));
+            } catch (JSONException ignored){
+
+            }
+        }
+
+        return p;
+
+        //TODO loop over next pages for lage playlists that exceec response limit
     }
     private String encodeJSON(JSONObject jsonObject){
         StringBuilder retString = new StringBuilder();
@@ -185,4 +259,5 @@ public class SpotifyAccount extends MusicService{
         }
     }
     class NoAccessTokenException extends Exception{}
+
 }
