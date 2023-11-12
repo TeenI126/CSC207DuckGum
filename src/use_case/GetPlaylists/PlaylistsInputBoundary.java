@@ -1,2 +1,4 @@
-package use_case;public class PlaylistsInputBoundary {
+package use_case.GetPlaylists;
+
+public class PlaylistsInputBoundary {
 }
