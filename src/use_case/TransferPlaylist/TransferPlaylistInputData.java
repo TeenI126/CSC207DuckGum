@@ -3,6 +3,7 @@ package use_case.TransferPlaylist;
 import entities.Account;
 import entities.Playlist;
 
+import entities.*;
 public class TransferPlaylistInputData {
 
     final private Playlist playlist;

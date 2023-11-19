@@ -8,6 +8,7 @@ import okhttp3.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import use_case.OpenLoginSpotify.OpenLoginSpotifyDataAccessInterface;
 
 import java.awt.*;
 import java.io.IOException;
@@ -18,7 +19,7 @@ import java.util.Base64;
 import java.util.Iterator;
 import java.util.List;
 
-public class SpotifyDataAccessObject {
+public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterface {
     private String clientSecret = Secrets.spotifyClientSecret;
 
     private String clientID = "b273f4e8f44d44168fe8c86492e95f86";
@@ -31,15 +32,15 @@ public class SpotifyDataAccessObject {
     // USER DETAILS
     private String displayName;
     private String userID;
-    void openLoginPage(){
-        openLoginPage(false);
+    public String getLoginPage(){
+        return getLoginPage(false);
     }
 
     /**
      *
      * @param forceLogin: TRUE - makes user sign in regardless if DuckGum has already been authorized.
      */
-    void openLoginPage(boolean forceLogin){
+    String getLoginPage(boolean forceLogin){
         JSONObject params = new JSONObject();
         params.put("client_id", clientID)
                 .put("response_type", "code")
@@ -49,14 +50,8 @@ public class SpotifyDataAccessObject {
             params.put("show_dialog", "true");
         }
 
+        return "https://accounts.spotify.com/authorize?" + encodeJSON(params);
 
-        try {
-            Desktop.getDesktop()
-                    .browse(URI.create("https://accounts.spotify.com/authorize?" + encodeJSON(params)));
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     /**
