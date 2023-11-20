@@ -1,23 +1,29 @@
 package entities;
 
+
+import java.util.List;
+
 public class Song {
     //TODO
-    public String id;
-    public String artist;
-    public String trackName;
+    private String id;
+    private List<String> artists;
+    private String trackName;
 
-    public Song(String id, String artist, String trackName) {
+    private String album;
+
+    public Song(String id, List<String> artists, String trackName, String album) {
         this.id = id;
-        this.artist = artist;
+        this.artists = artists;
         this.trackName = trackName;
+        this.album = album;
     }
 
     public String getId() {
         return id;
     }
 
-    public String getArtist() {
-        return artist;
+    public List<String> getArtists() {
+        return artists;
     }
 
     public String getTrackName() {
