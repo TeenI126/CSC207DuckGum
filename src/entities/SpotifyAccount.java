@@ -16,27 +16,23 @@ public class SpotifyAccount extends MusicService{
     private String clientSecret = Secrets.spotifyClientSecret;
     private final String url = "https://accounts.spotify.com/api/";
     private final String redirectURI = "https://github.com/TeenI126/CSC207DuckGum";
-    private String accessToken = null;
-    private String refreshToken = null;
-    private LocalDateTime accessTokenExpires = null;
 
-    // USER DETAILS
-    private String displayName;
-    private String userID;
-    private List<Playlist> playlists;
     // DAO
     public SpotifyAccount(String userID, List<Playlist> playlists){
         this.userID = userID;
         this.playlists = playlists;
     }
-    void openLoginPage(){
-        openLoginPage(false);
+
+    public SpotifyAccount(String accessToken, String refreshToken, LocalDateTime accessTokenExpires) {
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
+        this.accessTokenExpires = accessTokenExpires;
     }
 
-    /**
-     *
-     * @param forceLogin: TRUE - makes user sign in regardless if DuckGum has already been authorized.
-     */
+    //    /**
+//     *
+//     * @param forceLogin: TRUE - makes user sign in regardless if DuckGum has already been authorized.
+//     */
 //    void openLoginPage(boolean forceLogin){
 //        JSONObject params = new JSONObject();
 //        params.put("client_id", clientID)
@@ -227,27 +223,5 @@ public class SpotifyAccount extends MusicService{
     /**
      * This is for an application token NOT linked to a user
      */
-    void updateToken(){
-
-        MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
-        OkHttpClient client = new OkHttpClient().newBuilder().build();
-        RequestBody body = RequestBody.create(mediaType, "grant_type:client_credentials");
-        Request request = new Request.Builder().url(url+"token")
-                .method("POST",body)
-                .addHeader("Authorization", "Basic" + Base64.getEncoder().encodeToString((clientID+":"+clientSecret).getBytes()))
-                .addHeader("Content-Type", "application/x-www-form-urlencoded")
-                .build();
-
-        try {
-            Response response = client.newCall(request).execute();
-            JSONObject responseJSON = new JSONObject(response.body().string());
-
-            accessToken = responseJSON.getString("access_token");
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-    class NoAccessTokenException extends Exception{}
 
 }

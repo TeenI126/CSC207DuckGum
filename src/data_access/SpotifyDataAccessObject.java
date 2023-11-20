@@ -24,13 +24,7 @@ public class SpotifyDataAccessObject {
     private String clientID = "b273f4e8f44d44168fe8c86492e95f86";
     private final String url = "https://accounts.spotify.com/api/";
     private final String redirectURI = "https://github.com/TeenI126/CSC207DuckGum";
-    private String accessToken = null;
-    private String refreshToken = null;
-    private LocalDateTime accessTokenExpires = null;
-
     // USER DETAILS
-    private String displayName;
-    private String userID;
     void openLoginPage(){
         openLoginPage(false);
     }
@@ -76,17 +70,6 @@ public class SpotifyDataAccessObject {
      * @throws NoAccessTokenException, happens when the users login is no longer active and needs to log in via url from
      * openLoginPage()
      */
-    public String getUserAccessToken() throws NoAccessTokenException {
-        if (accessToken == null){
-            throw new NoAccessTokenException();
-        } else if (accessTokenExpires.isAfter(LocalDateTime.now())) {
-            refreshAccessToken();
-            return accessToken;
-        } else {
-            return accessToken;
-        }
-    }
-
     private void refreshAccessToken() {
     }
 
@@ -95,7 +78,7 @@ public class SpotifyDataAccessObject {
         return true;
     }
 
-    public void createNewUserAccessToken(String code){
+    public SpotifyAccount createSpotifyAccountFromCode(String code){
 
         OkHttpClient client = new OkHttpClient().newBuilder().build();
         RequestBody body = RequestBody.create(
@@ -122,23 +105,29 @@ public class SpotifyDataAccessObject {
             throw new RuntimeException(e);
         }
         //TODO handle not status 200 messages like a failed log in.
-        accessToken = responseJSON.getString("access_token");
-        refreshToken = responseJSON.getString("refresh_token");
-        accessTokenExpires = LocalDateTime.now().plusSeconds(responseJSON.getInt("expires_in")-60);
+        String accessToken = responseJSON.getString("access_token");
+        String refreshToken = responseJSON.getString("refresh_token");
+        LocalDateTime accessTokenExpires = LocalDateTime.now().plusSeconds(responseJSON.getInt("expires_in")-60);
+
+
+        SpotifyAccount spotifyAccount =  new SpotifyAccount(accessToken,refreshToken,accessTokenExpires);
+
         try {
-            updateSpotifyInformation();
+            updateSpotifyInformation(spotifyAccount, accessToken);
         } catch (NoAccessTokenException e) {
             throw new RuntimeException(e);
         }
 
 
+
+
     }
 
-    private void updateSpotifyInformation() throws NoAccessTokenException {
+    private void updateSpotifyInformation(SpotifyAccount spotifyAccount, String accessToken) {
         OkHttpClient client = new OkHttpClient().newBuilder().build();
 
         Request request = new Request.Builder()
-                .addHeader("Authorization", "Bearer " + getUserAccessToken())
+                .addHeader("Authorization", "Bearer " + accessToken)
                 .url("https://api.spotify.com/v1/me")
                 .method("GET",null)
                 .build();
@@ -150,18 +139,22 @@ public class SpotifyDataAccessObject {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        userID = responseJSON.getString("id");
-        displayName = responseJSON.getString("display_name");
 
+        String userID = responseJSON.getString("id");
+        String displayName = responseJSON.getString("display_name");
+
+        spotifyAccount.setUserID(userID);
+        spotifyAccount.setDisplayName(displayName);
+        spotifyAccount.setPlaylists(getPlaylists(accessToken,spotifyAccount));
     }
 
-    public java.util.List<Playlist> getPlaylists() throws NoAccessTokenException {
+    public java.util.List<Playlist> getPlaylists(String accessToken, SpotifyAccount spotifyAccount) {
         OkHttpClient client = new OkHttpClient().newBuilder().build();
 
         Request request = new Request.Builder()
-                .url("https://api.spotify.com/v1/users/"+userID+"/playlists")
+                .url("https://api.spotify.com/v1/users/"+spotifyAccount.getUserID()+"/playlists")
                 .method("GET",null)
-                .addHeader("Authorization", "Bearer " + getUserAccessToken())
+                .addHeader("Authorization", "Bearer " + spotifyAccount.getUserAccessToken())
                 .build();
 
         JSONObject responseJSON;
@@ -181,20 +174,20 @@ public class SpotifyDataAccessObject {
 
         for (int i = 0; i < rawPlaylists.length(); i++){
             JSONObject p = rawPlaylists.getJSONObject(i);
-            returnPlaylists.add(getPlaylist(p.getString("href")));
+            returnPlaylists.add(getPlaylist(accessToken, p.getString("href")));
 
         }
         return returnPlaylists;
         //TODO overflowed responses
     }
 
-    public Playlist getPlaylist(String spotifyPlaylistHref) throws NoAccessTokenException {
+    public Playlist getPlaylist(String accessToken, String spotifyPlaylistHref) {
         OkHttpClient client = new OkHttpClient().newBuilder().build();
 
         Request request = new Request.Builder()
                 .url(spotifyPlaylistHref)
                 .method("GET",null)
-                .addHeader("Authorization", "Bearer " + getUserAccessToken())
+                .addHeader("Authorization", "Bearer " + accessToken)
                 .build();
 
         JSONObject responseJSON;
@@ -261,7 +254,7 @@ public class SpotifyDataAccessObject {
     }
 
     public SpotifyAccount getSpotifyAccount(String codeFromRedirectURI) {
-        createNewUserAccessToken(codeFromRedirectURI);
+        createSpotifyAccountFromCode(codeFromRedirectURI);
 
         try {
             updateSpotifyInformation();
