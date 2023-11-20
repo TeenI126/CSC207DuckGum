@@ -1,5 +1,5 @@
 package use_case.ExportPlaylistCSV;
 
 public interface ExportPlaylistCSVInputBoundary {
-    void execute();
+    void execute(ExportPlaylistCSVInputData exportPlaylistCSVInputData);
 }
