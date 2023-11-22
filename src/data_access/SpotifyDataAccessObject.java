@@ -109,14 +109,9 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
 
         SpotifyAccount spotifyAccount =  new SpotifyAccount(accessToken,refreshToken,accessTokenExpires);
 
-        try {
-            updateSpotifyInformation(spotifyAccount, accessToken);
-        } catch (NoAccessTokenException e) {
-            throw new RuntimeException(e);
-        }
+        updateSpotifyInformation(spotifyAccount, accessToken);//adds user id and display name
 
-
-
+        return spotifyAccount;
 
     }
 
@@ -225,30 +220,30 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
         return retString.toString().replaceAll(" ","+");
     }
 
-    /**
-     * This is for an application token NOT linked to a user
-     */
-    void updateToken(){
-
-        MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
-        OkHttpClient client = new OkHttpClient().newBuilder().build();
-        RequestBody body = RequestBody.create(mediaType, "grant_type:client_credentials");
-        Request request = new Request.Builder().url(url+"token")
-                .method("POST",body)
-                .addHeader("Authorization", "Basic" + Base64.getEncoder().encodeToString((clientID+":"+clientSecret).getBytes()))
-                .addHeader("Content-Type", "application/x-www-form-urlencoded")
-                .build();
-
-        try {
-            Response response = client.newCall(request).execute();
-            JSONObject responseJSON = new JSONObject(response.body().string());
-
-            accessToken = responseJSON.getString("access_token");
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    /**
+//     * This is for an application token NOT linked to a user
+//     */
+//    void updateToken(){
+//
+//        MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
+//        OkHttpClient client = new OkHttpClient().newBuilder().build();
+//        RequestBody body = RequestBody.create(mediaType, "grant_type:client_credentials");
+//        Request request = new Request.Builder().url(url+"token")
+//                .method("POST",body)
+//                .addHeader("Authorization", "Basic" + Base64.getEncoder().encodeToString((clientID+":"+clientSecret).getBytes()))
+//                .addHeader("Content-Type", "application/x-www-form-urlencoded")
+//                .build();
+//
+//        try {
+//            Response response = client.newCall(request).execute();
+//            JSONObject responseJSON = new JSONObject(response.body().string());
+//
+//            String accessToken = responseJSON.getString("access_token");
+//
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
     public SpotifyAccount getSpotifyAccount(String codeFromRedirectURI) {
         createSpotifyAccountFromCode(codeFromRedirectURI);
