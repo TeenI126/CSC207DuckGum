@@ -3,7 +3,6 @@ package interface_adapter.LogInSpotify;
 import entities.Account;
 import use_case.LogInSpotify.LogInSpotifyInputBoundary;
 import use_case.LogInSpotify.LogInSpotifyInputData;
-import use_case.LogInSpotify.LogInSpotifyInteractor;
 
 public class LogInSpotifyController {
     LogInSpotifyInputBoundary interactor;

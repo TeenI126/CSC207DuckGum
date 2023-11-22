@@ -61,12 +61,6 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
         return uri.substring(47);
     }
 
-    /**
-     *
-     * @return String with user's access token, which can be used to do various actions through API
-     * @throws NoAccessTokenException, happens when the users login is no longer active and needs to log in via url from
-     * openLoginPage()
-     */
     private void refreshAccessToken() {
         //TODO
     }
