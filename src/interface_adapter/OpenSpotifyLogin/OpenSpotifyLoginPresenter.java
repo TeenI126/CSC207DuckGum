@@ -13,6 +13,7 @@ public class OpenSpotifyLoginPresenter implements OpenLoginSpotifyOutputBoundary
 
     @Override
     public void openLoginCallbackURL(OpenLoginSpotifyOutputData data) {
-
+        viewModel.getState().setCallbackUrl(data.getCallback_url());
+        viewModel.firePropertyChanged();
     }
 }

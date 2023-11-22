@@ -38,4 +38,7 @@ public class Account {
         }
         return playlists;
     }
+    public void addMusicService(MusicService musicService){
+        musicAccount.add(musicService);
+    }
 }

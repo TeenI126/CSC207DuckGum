@@ -3,7 +3,7 @@ package entities;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class MusicService {
+public abstract class MusicService {
     // API Referencing
     private String accessToken = null;
     private String refreshToken = null;

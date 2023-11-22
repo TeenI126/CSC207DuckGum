@@ -1,13 +1,20 @@
 package use_case.LogInSpotify;
 
-public class LogInSpotifyInputData {
-    String code;
+import entities.Account;
 
-    public LogInSpotifyInputData(String code) {
+public class LogInSpotifyInputData {
+    private String code;
+    private Account activeAccount;
+
+    public LogInSpotifyInputData(String code, Account activeAccount) {
         this.code = code;
+        this.activeAccount = activeAccount;
     }
 
     public String getCode(){
         return code;
+    }
+    public Account getActiveAccount(){
+        return activeAccount;
     }
 }

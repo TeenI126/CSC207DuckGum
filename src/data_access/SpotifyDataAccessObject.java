@@ -8,18 +8,18 @@ import okhttp3.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import use_case.LogInSpotify.LogInSpotifyDataAccessInterface;
 import use_case.OpenLoginSpotify.OpenLoginSpotifyDataAccessInterface;
 
-import java.awt.*;
+import javax.security.auth.login.FailedLoginException;
 import java.io.IOException;
-import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Iterator;
 import java.util.List;
 
-public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterface {
+public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterface, LogInSpotifyDataAccessInterface {
     private String clientSecret = Secrets.spotifyClientSecret;
 
     private String clientID = "b273f4e8f44d44168fe8c86492e95f86";
@@ -68,14 +68,10 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
      * openLoginPage()
      */
     private void refreshAccessToken() {
-    }
-
-    private boolean isUserAccessTokenValid(){
         //TODO
-        return true;
     }
 
-    public SpotifyAccount createSpotifyAccountFromCode(String code){
+    public SpotifyAccount createSpotifyAccountFromCode(String code) throws IOException, FailedLoginException {
 
         OkHttpClient client = new OkHttpClient().newBuilder().build();
         RequestBody body = RequestBody.create(
@@ -95,13 +91,14 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
 
 
         JSONObject responseJSON;
-        try {
-            Response response = client.newCall(request).execute();
-            responseJSON = new JSONObject(response.body().string());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+
+        Response response = client.newCall(request).execute();
+        responseJSON = new JSONObject(response.body().string());
+
+        if(!response.isSuccessful()){
+            throw new FailedLoginException();
         }
-        //TODO handle not status 200 messages like a failed log in.
+
         String accessToken = responseJSON.getString("access_token");
         String refreshToken = responseJSON.getString("refresh_token");
         LocalDateTime accessTokenExpires = LocalDateTime.now().plusSeconds(responseJSON.getInt("expires_in")-60);
@@ -115,7 +112,7 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
 
     }
 
-    private void updateSpotifyInformation(SpotifyAccount spotifyAccount, String accessToken) {
+    private void updateSpotifyInformation(SpotifyAccount spotifyAccount, String accessToken) throws IOException {
         OkHttpClient client = new OkHttpClient().newBuilder().build();
 
         Request request = new Request.Builder()
@@ -125,12 +122,10 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
                 .build();
 
         JSONObject responseJSON;
-        try {
-            Response response = client.newCall(request).execute();
-            responseJSON = new JSONObject(response.body().string());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+
+        Response response = client.newCall(request).execute();
+        responseJSON = new JSONObject(response.body().string());
+
 
         String userID = responseJSON.getString("id");
         String displayName = responseJSON.getString("display_name");
@@ -244,20 +239,6 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
 //            throw new RuntimeException(e);
 //        }
 //    }
-
-    public SpotifyAccount getSpotifyAccount(String codeFromRedirectURI) {
-        createSpotifyAccountFromCode(codeFromRedirectURI);
-
-        try {
-            updateSpotifyInformation();
-            return new SpotifyAccount(userID, getPlaylists());
-        } catch (NoAccessTokenException e) {
-            throw new RuntimeException(e); //TODO add failed login handling
-        }
-
-
-    }
-    class NoAccessTokenException extends Exception{}
 
 
 
