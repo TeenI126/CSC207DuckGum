@@ -1,19 +1,37 @@
 package entities;
 
-public class MusicService {
+import java.time.LocalDateTime;
+import java.util.List;
 
-    public String token;
-    public String type;
+public abstract class MusicService {
+    // API Referencing
+    private String accessToken = null;
+    private String refreshToken = null;
+    private LocalDateTime accessTokenExpires = null;
 
-    public void setToken(String tokenNew) {
-        token = tokenNew;
+    // USER DETAILS
+    private String displayName;
+    private String userID;
+    private List<Playlist> playlists;
+
+    public void setUserID(String userID) {
+        this.userID = userID;
     }
 
-    public String getToken() {
-        return token;
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
-    public String getType() {
-        return type;
+    public String getUserID() {
+        return userID;
+    }
+
+    public String getUserAccessToken() {
+        System.err.println("CALLING getUserAccessToken ABSTRACT METHOD IN MUSIC SERVICE");
+        return null;
+    }
+
+    public void setPlaylists(List<Playlist> playlists) {
+        this.playlists = playlists;
     }
 }
