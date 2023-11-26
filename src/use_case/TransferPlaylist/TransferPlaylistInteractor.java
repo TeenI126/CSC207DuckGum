@@ -16,8 +16,8 @@ import org.json.JSONObject;
 
 public class TransferPlaylistInteractor {
 
-    private SpotifyApi spotifyApi;
-    private AmazonMusicApi amazonMusicApi;
+    private AmazonAccount amazonAccount;
+    private SpotifyAccount spotifyAccount;
 
     public PlaylistInteractor(SpotifyApi spotifyApi, AmazonMusicApi amazonMusicApi) {
         this.spotifyApi = spotifyApi;
@@ -95,8 +95,27 @@ public class TransferPlaylistInteractor {
         return playlist;
     }
 
-    private Playlist createPlaylistOnAmazon(String playlistName) {
-        // Implementation to create a new playlist on Amazon Music
+    public String createPlaylistOnAmazon(String playlistName) throws IOException {
+        // Construct the JSON body
+        JSONObject body = new JSONObject();
+        body.put("name", playlistName);
+        // Add any other required fields
+
+        Request request = new Request.Builder()
+                .url(amazonAccount.getBaseUrl() + "/path/to/create/playlist") // Replace with correct endpoint
+                .post(RequestBody.create(body.toString(), MediaType.parse("application/json")))
+                .addHeader("x-api-key", amazonAccount.getApiKey())
+                .addHeader("Authorization", "Bearer " + amazonAccount.getAuthToken())
+                .build();
+
+        try (Response response = amazonAccount.getClient().newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("Failed to create playlist: " + response.message());
+            }
+            // Parse response to get the playlist ID or details
+            JSONObject responseJson = new JSONObject(response.body().string());
+            return responseJson.getString("id"); // Adjust based on the actual response structure
+        }
     }
 
     private Playlist createPlaylistOnSpotify(String playlistName) {
