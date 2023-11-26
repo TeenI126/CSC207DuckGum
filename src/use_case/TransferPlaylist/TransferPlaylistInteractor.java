@@ -2,6 +2,17 @@ package use_case.TransferPlaylist;
 
 import com.spotify.api.SpotifyApi; // Replace with the actual import from the Spotify SDK
 import com.amazon.music.AmazonMusicApi; // Replace with the actual import from the Amazon Music SDK
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import org.json.JSONObject;import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import org.json.JSONObject;
 
 public class TransferPlaylistInteractor {
 
@@ -24,14 +35,46 @@ public class TransferPlaylistInteractor {
         Playlist spotifyPlaylist = createPlaylistOnSpotify(spotifyPlaylist.getName());
         addSongsToSpotifyPlaylist(amazonPlaylist, spotifyPlaylist);
     }
+    
+    public Playlist fetchPlaylistFromSpotify(String playlistId) throws NoAccessTokenException {
+        OkHttpClient client = new OkHttpClient().newBuilder().build();
 
+        String url = "https://api.spotify.com/v1/playlists/" + playlistId;
+        Request request = new Request.Builder()
+                .url(url)
+                .method("GET", null)
+                .addHeader("Authorization", "Bearer " + getUserAccessToken())
+                .build();
 
-    private Playlist fetchPlaylistFromSpotify(String playlistId) {
-        // Implementation to fetch playlist details and songs from Spotify
+        JSONObject responseJSON;
+        try {
+            Response response = client.newCall(request).execute();
+            responseJSON = new JSONObject(response.body().string());
+
+            if (!response.isSuccessful()) {
+                throw new RuntimeException("Failed to fetch playlist: " + response.message());
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("IO Exception occurred", e);
+        }
+
+        JSONObject tracks = responseJSON.getJSONObject("tracks");
+        JSONArray items = tracks.getJSONArray("items");
+
+        Playlist p = new Playlist(responseJSON.getString("name"));
+        for (int i = 0; i < items.length(); i++) {
+            try {
+                p.addSong(SongFactory.songFromSpotifyTrackJSONObject(items.getJSONObject(i).getJSONObject("track")));
+            } catch (JSONException ignored) {
+                // Handle or log the exception as needed
+            }
+        }
+
+        return p;
     }
 
-    private Playlist fetchPlaylistFromAmazon(String playlistId) {
-        // Implementation to fetch playlist details and songs from Amazon
+    private Playlist fetchPlaylistFromAmazon(String playlistId) throws IOException {
+        
     }
 
     private Playlist createPlaylistOnAmazon(String playlistName) {
