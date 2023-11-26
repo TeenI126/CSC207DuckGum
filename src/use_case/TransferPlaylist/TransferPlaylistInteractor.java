@@ -118,8 +118,26 @@ public class TransferPlaylistInteractor {
         }
     }
 
-    private Playlist createPlaylistOnSpotify(String playlistName) {
-        // Implementation to create a new playlist on Spotify
+    public String createPlaylistOnSpotify(String userId, String playlistName) throws IOException {
+        // Construct the JSON body
+        JSONObject body = new JSONObject();
+        body.put("name", playlistName);
+        // Add any other required fields
+
+        Request request = new Request.Builder()
+                .url("https://api.spotify.com/v1/users/" + userId + "/playlists")
+                .post(RequestBody.create(body.toString(), MediaType.parse("application/json")))
+                .addHeader("Authorization", "Bearer " + spotifyAccount.getAccessToken())
+                .build();
+
+        try (Response response = spotifyAccount.getClient().newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("Failed to create playlist: " + response.message());
+            }
+            // Parse response to get the playlist ID or details
+            JSONObject responseJson = new JSONObject(response.body().string());
+            return responseJson.getString("id"); // Adjust based on the actual response structure
+        }
     }
 
     private void addSongsToAmazonPlaylist(Playlist spotifyPlaylist, Playlist amazonPlaylist) {
