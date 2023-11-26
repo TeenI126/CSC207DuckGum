@@ -74,7 +74,25 @@ public class TransferPlaylistInteractor {
     }
 
     private Playlist fetchPlaylistFromAmazon(String playlistId) throws IOException {
-        
+        String playlistJsonString = getUserPlaylists(playlistId);
+
+        JSONObject playlistJson = new JSONObject(playlistJsonString);
+        // Assuming the JSON structure contains a 'name' field and an array of 'tracks'
+        String playlistName = playlistJson.getString("name");
+        JSONArray tracksJson = playlistJson.getJSONArray("tracks");
+
+        Playlist playlist = new Playlist(playlistName);
+        for (int i = 0; i < tracksJson.length(); i++) {
+            JSONObject trackJson = tracksJson.getJSONObject(i);
+            try {
+                Song song = SongFactory.songFromAmazonTrackJSONObject(trackJson);
+                playlist.addSong(song);
+            } catch (JSONException e) {
+                // Handle or log the exception as needed
+            }
+        }
+
+        return playlist;
     }
 
     private Playlist createPlaylistOnAmazon(String playlistName) {
