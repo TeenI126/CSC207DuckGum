@@ -5,14 +5,14 @@ import java.util.List;
 
 public abstract class MusicService {
     // API Referencing
-    private String accessToken = null;
-    private String refreshToken = null;
-    private LocalDateTime accessTokenExpires = null;
+    String accessToken = null;
+    String refreshToken = null;
+    LocalDateTime accessTokenExpires = LocalDateTime.now();//defaults to now so any check evalaute false without null issues
 
     // USER DETAILS
-    private String displayName;
-    private String userID;
-    private List<Playlist> playlists;
+    String displayName;
+    String userID;
+    List<Playlist> playlists;
 
     public void setUserID(String userID) {
         this.userID = userID;

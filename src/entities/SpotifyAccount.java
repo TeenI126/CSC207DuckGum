@@ -12,12 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class SpotifyAccount extends MusicService{
-    private String clientID = "b273f4e8f44d44168fe8c86492e95f86";
-    private String clientSecret = Secrets.spotifyClientSecret;
-    private final String url = "https://accounts.spotify.com/api/";
-    private final String redirectURI = "https://github.com/TeenI126/CSC207DuckGum";
 
-    // DAO
     public SpotifyAccount(String userID, List<Playlist> playlists){
         this.userID = userID;
         this.playlists = playlists;
@@ -173,7 +168,7 @@ public class SpotifyAccount extends MusicService{
         //TODO overflowed responses
     }
 
-    public Playlist getPlaylist(String spotifyPlaylistHref) throws NoAccessTokenException {
+    public Playlist getPlaylist(String spotifyPlaylistHref) {
         OkHttpClient client = new OkHttpClient().newBuilder().build();
 
         Request request = new Request.Builder()
