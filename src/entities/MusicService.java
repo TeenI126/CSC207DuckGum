@@ -3,6 +3,7 @@ package entities;
 import java.time.LocalDateTime;
 import java.util.List;
 
+
 public abstract class MusicService {
     // API Referencing
     private String accessToken = null;
@@ -33,5 +34,13 @@ public abstract class MusicService {
 
     public void setPlaylists(List<Playlist> playlists) {
         this.playlists = playlists;
+    }
+
+    public String getUserID() {
+        return userID;
+    }
+
+    public String getDisplayName() {
+        return displayName;
     }
 }
