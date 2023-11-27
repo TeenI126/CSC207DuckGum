@@ -1,13 +1,6 @@
 package use_case.TransferPlaylist;
 
-import com.spotify.api.SpotifyApi; // Replace with the actual import from the Spotify SDK
-import com.amazon.music.AmazonMusicApi; // Replace with the actual import from the Amazon Music SDK
 import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import org.json.JSONObject;import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -19,9 +12,9 @@ public class TransferPlaylistInteractor {
     private AmazonAccount amazonAccount;
     private SpotifyAccount spotifyAccount;
 
-    public PlaylistInteractor(SpotifyApi spotifyApi, AmazonMusicApi amazonMusicApi) {
-        this.spotifyApi = spotifyApi;
-        this.amazonMusicApi = amazonMusicApi;
+    public PlaylistInteractor(SpotifyAccount spotifyAccount, AmazonAccount amazonAccount) {
+        this.spotifyAccount = spotifyAccount;
+        this.amazonAccount = amazonAccount;
     }
 
     public void transferPlaylistFromSpotifyToAmazon(String spotifyPlaylistId) {
