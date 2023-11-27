@@ -1,2 +1,3 @@
-package use_case.AddSong;public class AddSongInputBoundary {
+package use_case.AddSong;
+public interface AddSongInputBoundary {
 }
