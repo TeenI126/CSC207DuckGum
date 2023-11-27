@@ -1,6 +1,7 @@
 package use_case.AddSong;
 
 import entities.Playlist;
+import entities.Song;
 
 public class AddSongInputData {
 
