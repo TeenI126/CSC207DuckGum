@@ -5,6 +5,7 @@ import entities.Account;
 import entities.Playlist;
 import java.io.IOException;
 
+
 public class TransferPlaylistInputData {
 
     final private Playlist playlist;
