@@ -28,7 +28,7 @@ public class ExportPlaylistCSVDataAccessObject implements ExportPlaylistCSVDataA
 
     public void writeCSV(String csvPath, Playlist playlist) {
 
-        File csvFile = new File(csvPath);
+        File csvFile = new File("./" + csvPath + ".csv");
         Map<String, Integer> headers = new LinkedHashMap<>();
         headers.put("Track Name", 0);
         headers.put("Artist", 1);
@@ -60,6 +60,7 @@ public class ExportPlaylistCSVDataAccessObject implements ExportPlaylistCSVDataA
             throw new RuntimeException(e);
         }
     }
+    // double check this handles weird characters correctly
 
     @Override
     public boolean existsByName(String identifier) {

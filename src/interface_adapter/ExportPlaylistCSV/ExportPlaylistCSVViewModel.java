@@ -11,6 +11,7 @@ public class ExportPlaylistCSVViewModel extends ViewModel {
     public static final String PLAYLIST_LABEL = "Choose playlist";
     public static final String EXPORT_BUTTON_LABEL = "Export";
 
+    // Need more labels? (Consult overall view)
     private ExportPlaylistCSVState state = new ExportPlaylistCSVState();
 
     public ExportPlaylistCSVViewModel() {
