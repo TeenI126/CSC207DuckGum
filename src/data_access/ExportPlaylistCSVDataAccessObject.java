@@ -1,4 +1,73 @@
 package data_access;
 
-public class ExportPlaylistCSVDataAccessObject {
+import entities.Account;
+import entities.Playlist;
+import entities.Song;
+import use_case.ExportPlaylistCSV.ExportPlaylistCSVDataAccessInterface;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+public class ExportPlaylistCSVDataAccessObject implements ExportPlaylistCSVDataAccessInterface {
+
+    private List<Playlist> playlists;
+    private final Map<String, Playlist> playlistMap = new HashMap<>();
+
+    public ExportPlaylistCSVDataAccessObject(Account account) {
+        this.playlists = account.getPlaylists();
+        for (Playlist playlist : playlists) {
+            playlistMap.put(playlist.getName(), playlist);
+        }
+    }
+
+    public void writeCSV(String csvPath, Playlist playlist) {
+
+        File csvFile = new File(csvPath);
+        Map<String, Integer> headers = new LinkedHashMap<>();
+        headers.put("Track Name", 0);
+        headers.put("Artist", 1);
+        headers.put("Album", 2);
+        headers.put("Playlist name", 3);
+        headers.put("Type", 5);
+        headers.put("ISRC", 6);
+        /* The International Standard Recording Code (ISRC)
+        is the international identification system for
+        sound recordings and music video recordings.
+        */
+
+        BufferedWriter writer;
+        try {
+            writer = new BufferedWriter(new FileWriter(csvFile));
+            writer.write(String.join(",", headers.keySet()));
+            writer.newLine();
+
+            for (Song song : playlist.getSongs()) {
+                String line = String.format("%s,%s,%s,%s,%s,%s",
+                        song.getTrackName(), song.getArtists(), song.getAlbum(), csvPath, "Playlist", song.getId());
+                writer.write(line);
+                writer.newLine();
+            }
+
+            writer.close();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public boolean existsByName(String identifier) {
+        return playlistMap.containsKey(identifier);
+    }
+
+    @Override
+    public Playlist get(String playlist) {
+        return playlistMap.get(playlist);
+    }
 }

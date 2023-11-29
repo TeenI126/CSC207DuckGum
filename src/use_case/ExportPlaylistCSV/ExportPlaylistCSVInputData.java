@@ -1,20 +1,26 @@
 package use_case.ExportPlaylistCSV;
 
-import entities.Playlist;
+import entities.Account;
 
 public class ExportPlaylistCSVInputData {
     final private String userID;
-    final private Playlist playlist;
+    final private String playlist;
+    final private Account account;
 
-    public ExportPlaylistCSVInputData(String userID, Playlist playlist) {
+    public ExportPlaylistCSVInputData(String userID, String playlist, Account account) {
         this.playlist = playlist;
         this.userID = userID;
+        this.account = account;
     }
 
     String getUserID() {
         return userID;
     }
-    Playlist getPlaylist() {
+    String getPlaylistName() {
         return playlist;
+    }
+
+    Account getAccount() {
+        return account;
     }
 }
