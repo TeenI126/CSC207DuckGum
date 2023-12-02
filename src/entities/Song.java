@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Song {
     //TODO
-    private String id;
+    private String id; // ISRC
     private List<String> artists;
     private String trackName;
 
@@ -30,4 +30,7 @@ public class Song {
         return trackName;
     }
 
+    public String getAlbum() {
+        return album;
+    }
 }

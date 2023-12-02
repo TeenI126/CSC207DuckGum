@@ -39,7 +39,7 @@ public class Playlist {
         return songs.isEmpty();
     }
 
-    public List<Song> getPlaylist() {
+    public List<Song> getSongs() {
         if (isPlaylistEmpty()) {
             return null;
         }
