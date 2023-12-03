@@ -1,4 +1,6 @@
-package use_case.TransferPlaylist;
+package TransferPlaylist;
 
 public interface TransferPlaylistDataAccessInterface {
+    void savePlaylistTransferDetails(String sourcePlaylistId, String targetPlaylistId);
+    String getTargetPlaylistId(String sourcePlaylistId);
 }
