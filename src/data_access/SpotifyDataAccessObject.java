@@ -1,7 +1,9 @@
 package data_access;
 
 import Secrets.Secrets;
+import entities.Account;
 import entities.Builders.SongFactory;
+import entities.MusicService;
 import entities.Playlist;
 import entities.SpotifyAccount;
 import okhttp3.*;
@@ -61,8 +63,38 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
         return uri.substring(47);
     }
 
-    private void refreshAccessToken() {
+    private String getAccessTokenFromAccount(MusicService spotifyAccount) throws IOException {
+        if (spotifyAccount.getAccessTokenExpires().isAfter(LocalDateTime.now())){
+            refreshAccessToken(spotifyAccount);
+        }
+        return spotifyAccount.getUserAccessToken();
+    }
+
+
+    private void refreshAccessToken(MusicService spotifyAccount) throws IOException {
         //TODO
+        OkHttpClient client = new OkHttpClient().newBuilder().build();
+        RequestBody body = RequestBody.create(
+                MediaType.parse("application/x-www-form-urlencoded"),
+                "grant_type=refresh_token&refresh_token="+spotifyAccount.getRefreshToken()
+        );
+
+        Request request = new Request.Builder()
+                .url(url + "token")
+                .addHeader("Content-Type", "application/x-www-form-urlencoded")
+                .method("POST",body)
+                .build();
+
+
+        JSONObject responseJSON;
+
+        Response response = client.newCall(request).execute();
+        responseJSON = new JSONObject(response.body().string());
+
+        String newRefreshToken = responseJSON.getString("refresh_token");
+        String newAccessToken = responseJSON.getString("access_token");
+        LocalDateTime newExpires = LocalDateTime.now().plusSeconds(responseJSON.getInt("expires_in"));
+
     }
 
     public SpotifyAccount createSpotifyAccountFromCode(String code) throws IOException, FailedLoginException {

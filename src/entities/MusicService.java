@@ -1,5 +1,7 @@
 package entities;
 
+import Exceptions.ExpiredAccessTokenException;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,8 +30,15 @@ public abstract class MusicService {
     }
 
     public String getUserAccessToken() {
-        System.err.println("CALLING getUserAccessToken ABSTRACT METHOD IN MUSIC SERVICE");
-        return null;
+        return accessToken;
+    }
+
+    public LocalDateTime getAccessTokenExpires(){
+        return accessTokenExpires;
+    }
+
+    public String getRefreshToken(){
+        return refreshToken;
     }
 
     public void setPlaylists(List<Playlist> playlists) {
