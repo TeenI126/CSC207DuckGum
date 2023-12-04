@@ -1,15 +1,6 @@
 package entities;
 
-import Exceptions.ExpiredAccessTokenException;
-import Secrets.Secrets;
-import entities.Builders.SongFactory;
-import okhttp3.*;
-import org.json.*;
-import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Iterator;
 import java.util.List;
 
 public class SpotifyAccount extends MusicService {

@@ -1,10 +1,9 @@
 package data_access;
 
 import Secrets.Secrets;
-import entities.Account;
-import entities.Builders.SongFactory;
 import entities.MusicService;
 import entities.Playlist;
+import entities.Song;
 import entities.SpotifyAccount;
 import okhttp3.*;
 import org.json.JSONArray;
@@ -72,7 +71,6 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
 
 
     private void refreshAccessToken(MusicService spotifyAccount) throws IOException {
-        //TODO
         OkHttpClient client = new OkHttpClient().newBuilder().build();
         RequestBody body = RequestBody.create(
                 MediaType.parse("application/x-www-form-urlencoded"),
@@ -187,21 +185,25 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
 
         for (int i = 0; i < rawPlaylists.length(); i++){
             JSONObject p = rawPlaylists.getJSONObject(i);
-            returnPlaylists.add(getPlaylist(accessToken, p.getString("href")));
+            returnPlaylists.add(getPlaylist(spotifyAccount, p.getString("href")));
 
         }
         return returnPlaylists;
-        //TODO overflowed responses
     }
 
-    public Playlist getPlaylist(String accessToken, String spotifyPlaylistHref) {
+    public Playlist getPlaylist(SpotifyAccount spotifyAccount, String spotifyPlaylistHref) {
         OkHttpClient client = new OkHttpClient().newBuilder().build();
 
-        Request request = new Request.Builder()
-                .url(spotifyPlaylistHref)
-                .method("GET",null)
-                .addHeader("Authorization", "Bearer " + accessToken)
-                .build();
+        Request request;
+        try {
+            request = new Request.Builder()
+                    .url(spotifyPlaylistHref)
+                    .method("GET",null)
+                    .addHeader("Authorization", "Bearer " + getAccessTokenFromAccount(spotifyAccount))
+                    .build();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         JSONObject responseJSON;
         try {
@@ -218,15 +220,49 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
         Playlist p = new Playlist(responseJSON.getString("name"));
         for (int i = 0; i < items.length();i++){
             try{
-                p.addSong(SongFactory.songFromSpotifyTrackJSONObject(items.getJSONObject(i).getJSONObject("track")));
+                p.addSong(songFromSpotifyTrackJSONObject(items.getJSONObject(i).getJSONObject("track")));
             } catch (JSONException ignored){
+                try {
+                    Request requestRec = new Request.Builder()
+                            .url(spotifyPlaylistHref)
+                            .method("GET",null)
+                            .addHeader("Authorization", "Bearer " + getAccessTokenFromAccount(spotifyAccount))
+                            .build();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
 
+                try {
+                    Response response = client.newCall(request).execute();
+                    responseJSON = new JSONObject(response.body().string());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
 
         return p;
 
-        //TODO loop over next pages for lage playlists that exceec response limit
+
+    }
+
+    private Song songFromSpotifyTrackJSONObject(JSONObject trackJSONObject){
+        String id;
+        List<String> artists = new ArrayList<String>();
+        String name;
+        String album;
+
+        id = trackJSONObject.getJSONObject("external_ids").getString("isrc");
+
+        JSONArray artistsRaw = trackJSONObject.getJSONArray("artists");
+        for (int i = 0; i < artistsRaw.length(); i++){
+            artists.add(artistsRaw.getJSONObject(i).getString("name"));
+        }
+
+        name = trackJSONObject.getString("name");
+        album = trackJSONObject.getJSONObject("album").getString("name");
+
+        return new Song(id,artists,name,album);
     }
     private String encodeJSON(JSONObject jsonObject){
         StringBuilder retString = new StringBuilder();
