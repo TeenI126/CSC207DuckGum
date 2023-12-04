@@ -1,6 +1,7 @@
 package entities;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class MusicService {
@@ -12,7 +13,7 @@ public abstract class MusicService {
     // USER DETAILS
     String displayName;
     String userID;
-    List<Playlist> playlists;
+    List<Playlist> playlists = new ArrayList<Playlist>();
 
     public void setUserID(String userID) {
         this.userID = userID;
