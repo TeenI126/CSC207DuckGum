@@ -93,6 +93,10 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
         String newAccessToken = responseJSON.getString("access_token");
         LocalDateTime newExpires = LocalDateTime.now().plusSeconds(responseJSON.getInt("expires_in"));
 
+        spotifyAccount.setAccessToken(newAccessToken);
+        spotifyAccount.setRefreshToken(newRefreshToken);
+        spotifyAccount.setAccessTokenExpires(newExpires);
+
     }
 
     public SpotifyAccount createSpotifyAccountFromCode(String code) throws IOException, FailedLoginException {
@@ -277,29 +281,5 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
         return retString.toString().replaceAll(" ","+");
     }
 
-//    /**
-//     * This is for an application token NOT linked to a user
-//     */
-//    void updateToken(){
-//
-//        MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
-//        OkHttpClient client = new OkHttpClient().newBuilder().build();
-//        RequestBody body = RequestBody.create(mediaType, "grant_type:client_credentials");
-//        Request request = new Request.Builder().url(url+"token")
-//                .method("POST",body)
-//                .addHeader("Authorization", "Basic" + Base64.getEncoder().encodeToString((clientID+":"+clientSecret).getBytes()))
-//                .addHeader("Content-Type", "application/x-www-form-urlencoded")
-//                .build();
-//
-//        try {
-//            Response response = client.newCall(request).execute();
-//            JSONObject responseJSON = new JSONObject(response.body().string());
-//
-//            String accessToken = responseJSON.getString("access_token");
-//
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
 
 }

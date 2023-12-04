@@ -41,6 +41,18 @@ public abstract class MusicService {
         return refreshToken;
     }
 
+    public void setAccessToken(String accessToken){
+        this.accessToken = accessToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
+    public void setAccessTokenExpires(LocalDateTime accessTokenExpires) {
+        this.accessTokenExpires = accessTokenExpires;
+    }
+
     public void setPlaylists(List<Playlist> playlists) {
         this.playlists = playlists;
     }
