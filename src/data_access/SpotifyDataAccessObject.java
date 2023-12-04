@@ -26,9 +26,6 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
     private String clientID = "b273f4e8f44d44168fe8c86492e95f86";
     private final String url = "https://accounts.spotify.com/api/";
     private final String redirectURI = "https://github.com/TeenI126/CSC207DuckGum";
-    // USER DETAILS
-    private String displayName;
-    private String userID;
     public String getLoginPage(){
         return getLoginPage(false);
     }
@@ -51,19 +48,8 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
 
     }
 
-    /**
-     * TEMPORARY MEASURE, after a user logs into their spotify account, they will be redirected to a URI containing
-     * a code linked to a user that can be exchanged for a token.
-     *
-     * @param uri
-     */
-    public String getCodeFromURI(String uri){
-        //remove base uri, leaving extension with code left.
-        return uri.substring(47);
-    }
-
     private String getAccessTokenFromAccount(MusicService spotifyAccount) throws IOException {
-        if (spotifyAccount.getAccessTokenExpires().isAfter(LocalDateTime.now())){
+        if (spotifyAccount.getAccessTokenExpires().isBefore(LocalDateTime.now())){
             refreshAccessToken(spotifyAccount);
         }
         return spotifyAccount.getUserAccessToken();
@@ -80,6 +66,10 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
         Request request = new Request.Builder()
                 .url(url + "token")
                 .addHeader("Content-Type", "application/x-www-form-urlencoded")
+                .addHeader(
+                        "Authorization","Basic " +
+                                Base64.getEncoder().encodeToString((clientID+":"+clientSecret).getBytes())
+                )
                 .method("POST",body)
                 .build();
 
@@ -89,12 +79,16 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
         Response response = client.newCall(request).execute();
         responseJSON = new JSONObject(response.body().string());
 
-        String newRefreshToken = responseJSON.getString("refresh_token");
+        if (responseJSON.has("refresh_token")){ //refreshed refresh token only appears if refresh not still valid
+            String newRefreshToken = responseJSON.getString("refresh_token");
+            spotifyAccount.setRefreshToken(newRefreshToken);
+        }
+
         String newAccessToken = responseJSON.getString("access_token");
-        LocalDateTime newExpires = LocalDateTime.now().plusSeconds(responseJSON.getInt("expires_in"));
+        LocalDateTime newExpires = LocalDateTime.now().plusSeconds(responseJSON.getInt("expires_in")-60);
 
         spotifyAccount.setAccessToken(newAccessToken);
-        spotifyAccount.setRefreshToken(newRefreshToken);
+
         spotifyAccount.setAccessTokenExpires(newExpires);
 
     }
@@ -134,17 +128,17 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
 
         SpotifyAccount spotifyAccount =  new SpotifyAccount(accessToken,refreshToken,accessTokenExpires);
 
-        updateSpotifyInformation(spotifyAccount, accessToken);//adds user id and display name
+        updateSpotifyInformation(spotifyAccount);//adds user id and display name
 
         return spotifyAccount;
 
     }
 
-    private void updateSpotifyInformation(SpotifyAccount spotifyAccount, String accessToken) throws IOException {
+    private void updateSpotifyInformation(SpotifyAccount spotifyAccount) throws IOException {
         OkHttpClient client = new OkHttpClient().newBuilder().build();
 
         Request request = new Request.Builder()
-                .addHeader("Authorization", "Bearer " + accessToken)
+                .addHeader("Authorization", "Bearer " + getAccessTokenFromAccount(spotifyAccount))
                 .url("https://api.spotify.com/v1/me")
                 .method("GET",null)
                 .build();
@@ -160,16 +154,16 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
 
         spotifyAccount.setUserID(userID);
         spotifyAccount.setDisplayName(displayName);
-        spotifyAccount.setPlaylists(getPlaylists(accessToken,spotifyAccount));
+        spotifyAccount.setPlaylists(getPlaylists(spotifyAccount));
     }
 
-    public java.util.List<Playlist> getPlaylists(String accessToken, SpotifyAccount spotifyAccount) {
+    public java.util.List<Playlist> getPlaylists(SpotifyAccount spotifyAccount) throws IOException {
         OkHttpClient client = new OkHttpClient().newBuilder().build();
 
         Request request = new Request.Builder()
                 .url("https://api.spotify.com/v1/users/"+spotifyAccount.getUserID()+"/playlists")
                 .method("GET",null)
-                .addHeader("Authorization", "Bearer " + spotifyAccount.getUserAccessToken())
+                .addHeader("Authorization", "Bearer " + getAccessTokenFromAccount(spotifyAccount))
                 .build();
 
         JSONObject responseJSON;
