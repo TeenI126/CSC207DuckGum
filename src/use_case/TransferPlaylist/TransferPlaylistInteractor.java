@@ -1,147 +1,119 @@
 package use_case.TransferPlaylist;
 
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import org.json.JSONObject;
+import data_access.AmazonMusicDataAccessObject;
+import data_access.SpotifyDataAccessObject;
+import entities.Playlist;
+import data_access.*;
+import entities.*;
+import java.io.IOException;
 
-public class TransferPlaylistInteractor {
+public class TransferPlaylistInteractor implements TransferPlaylistInputBoundary {
 
-    private AmazonAccount amazonAccount;
-    private SpotifyAccount spotifyAccount;
+    private SpotifyDataAccessObject spotifyDAO;
+    private AmazonMusicDataAccessObject amazonDAO;
+    private TransferPlaylistOutputBoundary outputBoundary;
 
-    public PlaylistInteractor(SpotifyAccount spotifyAccount, AmazonAccount amazonAccount) {
-        this.spotifyAccount = spotifyAccount;
-        this.amazonAccount = amazonAccount;
+    public TransferPlaylistInteractor(SpotifyDataAccessObject spotifyDAO,
+                                      AmazonMusicDataAccessObject amazonDAO,
+                                      TransferPlaylistOutputBoundary outputBoundary) {
+        this.spotifyDAO = spotifyDAO;
+        this.amazonDAO = amazonDAO;
+        this.outputBoundary = outputBoundary;
     }
 
-    public void transferPlaylistFromSpotifyToAmazon(String spotifyPlaylistId) {
-        Playlist spotifyPlaylist = fetchPlaylistFromSpotify(spotifyPlaylistId);
-        Playlist amazonPlaylist = createPlaylistOnAmazon(spotifyPlaylist.getName());
-        addSongsToAmazonPlaylist(spotifyPlaylist, amazonPlaylist);
-    }
-
-    public void transferPlaylistFromAmazonToSpotify(String spotifyPlaylistId) {
-        Playlist amazonPlaylist = fetchPlaylistFromAmazon(spotifyPlaylistId);
-        Playlist spotifyPlaylist = createPlaylistOnSpotify(spotifyPlaylist.getName());
-        addSongsToSpotifyPlaylist(amazonPlaylist, spotifyPlaylist);
-    }
-    
-    public Playlist fetchPlaylistFromSpotify(String playlistId) throws NoAccessTokenException {
-        OkHttpClient client = new OkHttpClient().newBuilder().build();
-
-        String url = "https://api.spotify.com/v1/playlists/" + playlistId;
-        Request request = new Request.Builder()
-                .url(url)
-                .method("GET", null)
-                .addHeader("Authorization", "Bearer " + getUserAccessToken())
-                .build();
-
-        JSONObject responseJSON;
+    @Override
+    public void transferPlaylist(TransferPlaylistInputData inputData) {
         try {
-            Response response = client.newCall(request).execute();
-            responseJSON = new JSONObject(response.body().string());
-
-            if (!response.isSuccessful()) {
-                throw new RuntimeException("Failed to fetch playlist: " + response.message());
+            Playlist playlistToTransfer;
+            if (inputData.getSourceService().equalsIgnoreCase("Spotify")) {
+                playlistToTransfer = spotifyDAO.getPlaylist(inputData.getSpotifyAccessToken(), inputData.getPlaylistId());
+                // Convert Spotify playlist to Amazon format and create it
+                // Implementation will depend on the AmazonMusicDataAccessObject's method signatures
+                // Create a createPlaylist method similar to the SpotifyDataAccessObject
+                amazonDAO.createPlaylist(playlistToTransfer, inputData.getAmazonAccessToken());
+                outputBoundary.presentTransferResult(new TransferPlaylistOutputData(true, "Playlist transferred from Spotify to Amazon Music successfully."));
+            } else if (inputData.getSourceService().equalsIgnoreCase("Amazon")) {
+                playlistToTransfer = amazonDAO.getPlaylist(inputData.getAmazonAccessToken(), inputData.getPlaylistId());
+                // Convert Amazon playlist to Spotify format and create it
+                // Implementation will depend on the SpotifyDataAccessObject's method signatures
+                spotifyDAO.createPlaylist(playlistToTransfer, inputData.getSpotifyAccessToken());
+                outputBoundary.presentTransferResult(new TransferPlaylistOutputData(true, "Playlist transferred from Amazon Music to Spotify successfully."));
+            } else {
+                throw new IllegalArgumentException("Unsupported music service for transfer.");
             }
-        } catch (IOException e) {
-            throw new RuntimeException("IO Exception occurred", e);
-        }
-
-        JSONObject tracks = responseJSON.getJSONObject("tracks");
-        JSONArray items = tracks.getJSONArray("items");
-
-        Playlist p = new Playlist(responseJSON.getString("name"));
-        for (int i = 0; i < items.length(); i++) {
-            try {
-                p.addSong(SongFactory.songFromSpotifyTrackJSONObject(items.getJSONObject(i).getJSONObject("track")));
-            } catch (JSONException ignored) {
-                // Handle or log the exception as needed
-            }
-        }
-
-        return p;
-    }
-
-    private Playlist fetchPlaylistFromAmazon(String playlistId) throws IOException {
-        String playlistJsonString = getUserPlaylists(playlistId);
-
-        JSONObject playlistJson = new JSONObject(playlistJsonString);
-        // Assuming the JSON structure contains a 'name' field and an array of 'tracks'
-        String playlistName = playlistJson.getString("name");
-        JSONArray tracksJson = playlistJson.getJSONArray("tracks");
-
-        Playlist playlist = new Playlist(playlistName);
-        for (int i = 0; i < tracksJson.length(); i++) {
-            JSONObject trackJson = tracksJson.getJSONObject(i);
-            try {
-                Song song = SongFactory.songFromAmazonTrackJSONObject(trackJson);
-                playlist.addSong(song);
-            } catch (JSONException e) {
-                // Handle or log the exception as needed
-            }
-        }
-
-        return playlist;
-    }
-
-    public String createPlaylistOnAmazon(String playlistName) throws IOException {
-        // Construct the JSON body
-        JSONObject body = new JSONObject();
-        body.put("name", playlistName);
-        // Add any other required fields
-
-        Request request = new Request.Builder()
-                .url(amazonAccount.getBaseUrl() + "/path/to/create/playlist") // Replace with correct endpoint
-                .post(RequestBody.create(body.toString(), MediaType.parse("application/json")))
-                .addHeader("x-api-key", amazonAccount.getApiKey())
-                .addHeader("Authorization", "Bearer " + amazonAccount.getAuthToken())
-                .build();
-
-        try (Response response = amazonAccount.getClient().newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                throw new IOException("Failed to create playlist: " + response.message());
-            }
-            // Parse response to get the playlist ID or details
-            JSONObject responseJson = new JSONObject(response.body().string());
-            return responseJson.getString("id"); // Adjust based on the actual response structure
+        } catch (IOException | IllegalArgumentException e) {
+            outputBoundary.presentTransferResult(new TransferPlaylistOutputData(false, "Failed to transfer playlist: " + e.getMessage()));
         }
     }
 
-    public String createPlaylistOnSpotify(String userId, String playlistName) throws IOException {
-        // Construct the JSON body
-        JSONObject body = new JSONObject();
-        body.put("name", playlistName);
-        // Add any other required fields
+    // Transfer from Spotify to Amazon
+    private void transferFromSpotifyToAmazon(String spotifyAccessToken, String playlistId, String amazonAccessToken) throws IOException {
+        Playlist spotifyPlaylist = spotifyDAO.getPlaylist(spotifyAccessToken, playlistId);
+        List<Song> mappedSongs = mapSongsForAmazon(spotifyPlaylist.getSongs());
+        Playlist amazonPlaylist = createAmazonPlaylist(mappedSongs, spotifyPlaylist.getName(), amazonAccessToken);
+        amazonDAO.createPlaylist(amazonPlaylist, amazonAccessToken); // Implement this method in your DAO
+    }
 
-        Request request = new Request.Builder()
-                .url("https://api.spotify.com/v1/users/" + userId + "/playlists")
-                .post(RequestBody.create(body.toString(), MediaType.parse("application/json")))
-                .addHeader("Authorization", "Bearer " + spotifyAccount.getAccessToken())
-                .build();
+    // Transfer from Amazon to Spotify
+    private void transferFromAmazonToSpotify(String amazonAccessToken, String playlistId, String spotifyAccessToken) throws IOException {
+        Playlist amazonPlaylist = amazonDAO.getPlaylist(amazonAccessToken, playlistId);
+        List<Song> mappedSongs = mapSongsForSpotify(amazonPlaylist.getSongs());
+        Playlist spotifyPlaylist = createSpotifyPlaylist(mappedSongs, amazonPlaylist.getName(), spotifyAccessToken);
+        spotifyDAO.createPlaylist(spotifyPlaylist, spotifyAccessToken); // Implement this method in your DAO
+    }
 
-        try (Response response = spotifyAccount.getClient().newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                throw new IOException("Failed to create playlist: " + response.message());
+    // Map songs from a Spotify playlist for Amazon Music
+    private List<Song> mapSongsForAmazon(List<Song> spotifySongs) {
+        List<Song> amazonSongs = new ArrayList<>();
+        for (Song spotifySong : spotifySongs) {
+            // Implement song mapping logic here
+            // You would typically use song metadata like track name and artist to find the corresponding song on Amazon Music
+            Song amazonSong = findSongOnAmazon(spotifySong); // This is a placeholder for the actual mapping logic
+            if (amazonSong != null) {
+                amazonSongs.add(amazonSong);
             }
-            // Parse response to get the playlist ID or details
-            JSONObject responseJson = new JSONObject(response.body().string());
-            return responseJson.getString("id"); // Adjust based on the actual response structure
         }
+        return amazonSongs;
     }
 
-    private void addSongsToAmazonPlaylist(Playlist spotifyPlaylist, Playlist amazonPlaylist) {
-        // Map and add songs from Spotify playlist to Amazon playlist
-        // Song mapping is a complex process due to different song IDs on platforms
+    // Map songs from an Amazon playlist for Spotify
+    private List<Song> mapSongsForSpotify(List<Song> amazonSongs) {
+        List<Song> spotifySongs = new ArrayList<>();
+        for (Song amazonSong : amazonSongs) {
+            // Implement song mapping logic here
+            Song spotifySong = findSongOnSpotify(amazonSong); // This is a placeholder for the actual mapping logic
+            if (spotifySong != null) {
+                spotifySongs.add(spotifySong);
+            }
+        }
+        return spotifySongs;
     }
 
-    private void addSongsToSpotifyPlaylist(Playlist amazonPlaylist, Playlist spotifyPlaylist) {
-        // Map and add songs from Amazon playlist to Spotify playlist
-        // Song mapping is a complex process due to different song IDs on platforms
+    // Create a new Amazon playlist with mapped songs
+    private Playlist createAmazonPlaylist(List<Song> songs, String playlistName, String amazonAccessToken) {
+        // Implement playlist creation logic here for Amazon Music
+        // The AmazonMusicDataAccessObject should have a method to create a playlist given a list of songs
+        return new Playlist(playlistName, songs); // This constructor assumes Playlist can take a name and list of songs
+    }
+
+    // Create a new Spotify playlist with mapped songs
+    private Playlist createSpotifyPlaylist(List<Song> songs, String playlistName, String spotifyAccessToken) {
+        // Implement playlist creation logic here for Spotify
+        // The SpotifyDataAccessObject should have a method to create a playlist given a list of songs
+        return new Playlist(playlistName, songs); // This constructor assumes Playlist can take a name and list of songs
+    }
+
+    // Find a song on Amazon Music that matches the Spotify song
+    private Song findSongOnAmazon(Song spotifySong) {
+        // Implement logic to find a matching song on Amazon Music
+        // This would likely involve searching the Amazon Music catalog by track name and artist
+        return null; // Placeholder for the actual song object
+    }
+
+    // Find a song on Spotify that matches the Amazon song
+    private Song findSongOnSpotify(Song amazonSong) {
+        // Implement logic to find a matching song on Spotify
+        // This would likely involve searching the Spotify catalog by track name and artist
+        return null; // Placeholder for the actual song object
     }
 }
-
-
