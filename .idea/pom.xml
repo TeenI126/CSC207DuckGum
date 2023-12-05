@@ -1,0 +1,12 @@
+<project>
+    <dependencies>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20210307</version>
+        </dependency>
+        <!-- Add other dependencies here -->
+    </dependencies>
+
+    <!-- You can add other Maven configurations here -->
+</project>
