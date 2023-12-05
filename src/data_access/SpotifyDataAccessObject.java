@@ -209,6 +209,55 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
         return retString.toString().replaceAll(" ","+");
     }
 
+    public String getCurrentUserId(String accessToken) throws IOException {
+        String url = BASE_URL + "/me";
+
+        Request request = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer " + accessToken)
+                .build();
+
+        try (Response response = httpClient.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("Unexpected code " + response + " with body " + response.body().string());
+            }
+
+            JSONObject responseJson = new JSONObject(response.body().string());
+            return responseJson.getString("id");
+        }
+    }
+
+    // Method to create a playlist on Spotify for a given user
+    public String createPlaylist(String userId, Playlist playlist, String accessToken) throws IOException {
+        // Define the endpoint URL
+        String url = BASE_URL + "/users/" + userId + "/playlists";
+
+        // Create the request body with the playlist details
+        JSONObject playlistDetails = new JSONObject();
+        playlistDetails.put("name", playlist.getName());
+        playlistDetails.put("description", "Created via SpotifyAPI");
+        playlistDetails.put("public", false);  // Set to 'true' if you want the playlist to be public
+
+        // Build the POST request to create the playlist
+        RequestBody body = RequestBody.create(playlistDetails.toString(), MediaType.get("application/json; charset=utf-8"));
+        Request request = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer " + accessToken)
+                .post(body)
+                .build();
+
+        // Execute the request
+        try (Response response = httpClient.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("Unexpected code " + response + " with body " + response.body().string());
+            }
+
+            // Parse the response to get the new playlist ID
+            JSONObject responseJson = new JSONObject(response.body().string());
+            return responseJson.getString("id");
+        }
+    }
+
 //    /**
 //     * This is for an application token NOT linked to a user
 //     */
