@@ -3,7 +3,9 @@ package interface_adapter;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.net.URI;
 import java.util.Random;
+
 public class MainApp extends JFrame {
 
     private DefaultListModel<String> spotifyListModel;
@@ -17,6 +19,9 @@ public class MainApp extends JFrame {
     private JButton spotifyLoginButton;
     private JButton amazonLoginButton;
     private JButton syncPlaylistsButton;
+
+    private static final String CLIENT_ID = "amzn1.application-oa2-client.951516002f594c19922fd8aa22fa93fc";
+    private static final String REDIRECT_URI = "http://localhost:8080/callback";
 
     public MainApp() {
         // Frame settings
@@ -73,6 +78,7 @@ public class MainApp extends JFrame {
         // Action Listeners
         spotifyLoginButton.addActionListener(e -> loginToService("Spotify"));
         amazonLoginButton.addActionListener(e -> loginToService("Amazon"));
+        amazonLoginButton.addActionListener(e -> loginToAmazon());
         transferToAmazonButton.addActionListener(e -> transferPlaylists("Spotify to Amazon Music"));
         transferToSpotifyButton.addActionListener(e -> transferPlaylists("Amazon Music to Spotify"));
         syncPlaylistsButton.addActionListener(e -> syncPlaylists());
@@ -81,6 +87,34 @@ public class MainApp extends JFrame {
 
 
     }
+
+    private void loginToAmazon() {
+        try {
+            String amazonLoginUrl = String.format("https://www.amazon.com/ap/oa?client_id=%s&scope=profile&response_type=code&redirect_uri=%s", CLIENT_ID, REDIRECT_URI);
+            Desktop.getDesktop().browse(new URI(amazonLoginUrl));
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error opening Amazon login page: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    public void handleAmazonLoginCallback(String userProfile, String playlists) {
+        SwingUtilities.invokeLater(() -> {
+            amazonListModel.clear();
+            amazonSongListModel.clear();
+
+            // Parse and update the user profile and playlists
+            // This part depends on the format of userProfile and playlists
+
+            amazonLoginButton.setText("Successfully logged in");
+            amazonLoginButton.setBackground(Color.GREEN);
+
+            amazonList.repaint();
+            amazonList.revalidate();
+            amazonSongList.repaint();
+            amazonSongList.revalidate();
+        });
+    }
+
     private void loginToService(String service) {
         if (service.equals("Spotify")) {
             spotifyListModel.clear();
