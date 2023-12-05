@@ -53,4 +53,8 @@ public class Playlist {
         }
         return songs;
     }
+
+    public boolean contains(Song song) {
+        return songs.contains(song);
+    }
 }
