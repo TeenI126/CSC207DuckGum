@@ -282,7 +282,7 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
         Playlist newPlaylist = new Playlist(playlistName);
         newPlaylist.setId(playlistID);
 
-        for (Song song : playlist.getPlaylist()){
+        for (Song song : playlist.getSongs()){
             addSongToPlaylist(spotifyAccount,playlist,song);
         }
         updateSpotifyInformation(spotifyAccount);
