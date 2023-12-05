@@ -1,10 +1,11 @@
 package entities;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Account {
     public String id;
-    public List<MusicService> musicAccount;
+    public List<MusicService> musicAccount = new ArrayList<MusicService>();
     private String password;
     public String email;
     public List<Playlist> playlists;
