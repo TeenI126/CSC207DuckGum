@@ -1,19 +1,22 @@
 package entities;
 
+import Exceptions.ExpiredAccessTokenException;
+
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 
 public abstract class MusicService {
     // API Referencing
-    private String accessToken = null;
-    private String refreshToken = null;
-    private LocalDateTime accessTokenExpires = null;
+    String accessToken = null;
+    String refreshToken = null;
+    LocalDateTime accessTokenExpires = LocalDateTime.now();//defaults to now so any check evalaute false without null issues
 
     // USER DETAILS
-    private String displayName;
-    private String userID;
-    private List<Playlist> playlists;
+    String displayName;
+    String userID;
+    List<Playlist> playlists = new ArrayList<Playlist>();
 
     public void setUserID(String userID) {
         this.userID = userID;
@@ -28,8 +31,27 @@ public abstract class MusicService {
     }
 
     public String getUserAccessToken() {
-        System.err.println("CALLING getUserAccessToken ABSTRACT METHOD IN MUSIC SERVICE");
-        return null;
+        return accessToken;
+    }
+
+    public LocalDateTime getAccessTokenExpires(){
+        return accessTokenExpires;
+    }
+
+    public String getRefreshToken(){
+        return refreshToken;
+    }
+
+    public void setAccessToken(String accessToken){
+        this.accessToken = accessToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
+    public void setAccessTokenExpires(LocalDateTime accessTokenExpires) {
+        this.accessTokenExpires = accessTokenExpires;
     }
 
     public void setPlaylists(List<Playlist> playlists) {

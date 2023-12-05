@@ -126,9 +126,6 @@ public class MainApp extends JFrame {
             spotifyListModel.addElement("Good Vibes");
             spotifyListModel.addElement("Drake Stuff");
 
-            // Adding songs to the song list model for Spotify playlists
-            spotifySongListModel.addElement("Chill Song 1");
-
             spotifyLoginButton.setText("Successfully logged in");
             spotifyLoginButton.setBackground(Color.GREEN);
         } else if (service.equals("Amazon")) {
@@ -171,14 +168,303 @@ public class MainApp extends JFrame {
     }
 
     private void addSong() {
+        JFrame frame = new JFrame("Select A Music Service:");
+        JLabel select = new JLabel("Select A Music Service:");
+
+        // Creating a new buttons
+        JButton spotifyButton = new JButton("Spotify");
+        JButton amazonButton = new JButton("Amazon");
+
+        // Creating a panel to add buttons
+        JPanel panel = new JPanel();
+
+        // Adding buttons and textfield to panel
+        // using add() method
+        panel.add(select);
+        panel.add(spotifyButton);
+        panel.add(amazonButton);
+
+        // Adding panel to frame
+        frame.add(panel);
+
+        // Setting the size of frame
+        frame.setSize(300, 300);
+
+        frame.show();
+
+        spotifyButton.addActionListener(e -> frame.dispose());
+        spotifyButton.addActionListener(e -> selectPlaylistSpotifyToAdd());
+        amazonButton.addActionListener(e -> frame.dispose());
+        amazonButton.addActionListener(e -> selectPlaylistAmazonToAdd());
+
         // Dummy add song logic
         // ...
     }
 
+    private void selectPlaylistSpotifyToAdd() {
+        JFrame frame = new JFrame();
+        JLabel select = new JLabel("Select A Spotify Playlist:");
+
+        // Creating a new buttons
+        JButton playlist1 = new JButton("Chill Vibes");
+        JButton playlist2 = new JButton("Workout Hits");
+        JButton playlist3 = new JButton("Good Vibes");
+        JButton playlist4 = new JButton("Drake Stuff");
+
+        // Creating a panel to add buttons
+        JPanel panel = new JPanel();
+
+        // Adding buttons and textfield to panel
+        // using add() method
+        panel.add(select);
+        panel.add(playlist1);
+        panel.add(playlist2);
+        panel.add(playlist3);
+        panel.add(playlist4);
+
+        // Adding panel to frame
+        frame.add(panel);
+
+        // Setting the size of frame
+        frame.setSize(300, 300);
+
+        frame.show();
+        playlist1.addActionListener(e -> selectSongToAdd("Chill Vibes"));
+        playlist1.addActionListener(e -> frame.dispose());
+        playlist2.addActionListener(e -> selectSongToAdd("Workout Hits"));
+        playlist2.addActionListener(e -> frame.dispose());
+        playlist3.addActionListener(e -> selectSongToAdd("Good Vibes"));
+        playlist3.addActionListener(e -> frame.dispose());
+        playlist4.addActionListener(e -> selectSongToAdd("Drake Stuff"));
+        playlist4.addActionListener(e -> frame.dispose());
+    }
+
+    private void selectPlaylistAmazonToAdd() {
+        JFrame frame = new JFrame();
+        JLabel select = new JLabel("Select An Amazon Playlist:");
+
+        // Creating a new buttons
+        JButton playlist1 = new JButton("Pop Chartbusters");
+        JButton playlist2 = new JButton("Rock Legends");
+        JButton playlist3 = new JButton("Lil Yachty Legends");
+        JButton playlist4 = new JButton("Summer Pop");
+
+        // Creating a panel to add buttons
+        JPanel panel = new JPanel();
+
+        // Adding buttons and textfield to panel
+        // using add() method
+        panel.add(select);
+        panel.add(playlist1);
+        panel.add(playlist2);
+        panel.add(playlist3);
+        panel.add(playlist4);
+
+        // Adding panel to frame
+        frame.add(panel);
+
+        // Setting the size of frame
+        frame.setSize(300, 300);
+
+        frame.show();
+        playlist1.addActionListener(e -> selectSongToAdd("Pop Chartbusters"));
+        playlist1.addActionListener(e -> frame.dispose());
+        playlist2.addActionListener(e -> selectSongToAdd("Rock Legends"));
+        playlist2.addActionListener(e -> frame.dispose());
+        playlist3.addActionListener(e -> selectSongToAdd("Lil Yachty Legends"));
+        playlist3.addActionListener(e -> frame.dispose());
+        playlist4.addActionListener(e -> selectSongToAdd("Summer Pop"));
+        playlist4.addActionListener(e -> frame.dispose());
+    }
+
+    private void selectSongToAdd(String playlist) {
+        JFrame frame = new JFrame();
+        JLabel select = new JLabel("Select a song to add to " + playlist + ":");
+
+        // Creating a new buttons
+        JButton song1 = new JButton("Song 1");
+        JButton song2 = new JButton("Song 2");
+
+        // Creating a panel to add buttons
+        JPanel panel = new JPanel();
+
+        // Adding buttons and textfield to panel
+        // using add() method
+        panel.add(select);
+        panel.add(song1);
+        panel.add(song2);
+
+        // Adding panel to frame
+        frame.add(panel);
+
+        // Setting the size of frame
+        frame.setSize(300, 300);
+
+        frame.show();
+        song1.addActionListener(e -> songAddedSuccess("Song 1"));
+        song1.addActionListener(e -> frame.dispose());
+        song2.addActionListener(e -> songAddedSuccess("Song 2"));
+        song2.addActionListener(e -> frame.dispose());
+    }
+
+    private void songAddedSuccess(String song) {
+        JOptionPane pane = new JOptionPane(song + " added successfully!", JOptionPane.INFORMATION_MESSAGE);
+        JDialog dialog = pane.createDialog(this, "Status");
+        Timer timer = new Timer(2000, e -> dialog.dispose());
+        timer.setRepeats(false);
+        timer.start();
+        dialog.setVisible(true);
+    }
+
     private void removeSong() {
+        JFrame frame = new JFrame("Select A Music Service:");
+        JLabel select = new JLabel("Select A Music Service:");
+
+        // Creating a new buttons
+        JButton spotifyButton = new JButton("Spotify");
+        JButton amazonButton = new JButton("Amazon");
+
+        // Creating a panel to add buttons
+        JPanel panel = new JPanel();
+
+        // Adding buttons and textfield to panel
+        // using add() method
+        panel.add(select);
+        panel.add(spotifyButton);
+        panel.add(amazonButton);
+
+        // Adding panel to frame
+        frame.add(panel);
+
+        // Setting the size of frame
+        frame.setSize(300, 300);
+
+        frame.show();
+
+        spotifyButton.addActionListener(e -> frame.dispose());
+        spotifyButton.addActionListener(e -> selectPlaylistSpotifyToRemove());
+        amazonButton.addActionListener(e -> frame.dispose());
+        amazonButton.addActionListener(e -> selectPlaylistAmazonToRemove());
         // Dummy remove song logic
         // ...
     }
+
+    private void selectPlaylistSpotifyToRemove() {
+        JFrame frame = new JFrame();
+        JLabel select = new JLabel("Select A Spotify Playlist:");
+
+        // Creating a new buttons
+        JButton playlist1 = new JButton("Chill Vibes");
+        JButton playlist2 = new JButton("Workout Hits");
+        JButton playlist3 = new JButton("Good Vibes");
+        JButton playlist4 = new JButton("Drake Stuff");
+
+        // Creating a panel to add buttons
+        JPanel panel = new JPanel();
+
+        // Adding buttons and textfield to panel
+        // using add() method
+        panel.add(select);
+        panel.add(playlist1);
+        panel.add(playlist2);
+        panel.add(playlist3);
+        panel.add(playlist4);
+
+        // Adding panel to frame
+        frame.add(panel);
+
+        // Setting the size of frame
+        frame.setSize(300, 300);
+
+        frame.show();
+        playlist1.addActionListener(e -> selectSongToRemove("Chill Vibes"));
+        playlist1.addActionListener(e -> frame.dispose());
+        playlist2.addActionListener(e -> selectSongToRemove("Workout Hits"));
+        playlist2.addActionListener(e -> frame.dispose());
+        playlist3.addActionListener(e -> selectSongToRemove("Good Vibes"));
+        playlist3.addActionListener(e -> frame.dispose());
+        playlist4.addActionListener(e -> selectSongToRemove("Drake Stuff"));
+        playlist4.addActionListener(e -> frame.dispose());
+    }
+
+    private void selectPlaylistAmazonToRemove() {
+        JFrame frame = new JFrame();
+        JLabel select = new JLabel("Select An Amazon Playlist:");
+
+        // Creating a new buttons
+        JButton playlist1 = new JButton("Pop Chartbusters");
+        JButton playlist2 = new JButton("Rock Legends");
+        JButton playlist3 = new JButton("Lil Yachty Legends");
+        JButton playlist4 = new JButton("Summer Pop");
+
+        // Creating a panel to add buttons
+        JPanel panel = new JPanel();
+
+        // Adding buttons and textfield to panel
+        // using add() method
+        panel.add(select);
+        panel.add(playlist1);
+        panel.add(playlist2);
+        panel.add(playlist3);
+        panel.add(playlist4);
+
+        // Adding panel to frame
+        frame.add(panel);
+
+        // Setting the size of frame
+        frame.setSize(300, 300);
+
+        frame.show();
+        playlist1.addActionListener(e -> selectSongToRemove("Pop Chartbusters"));
+        playlist1.addActionListener(e -> frame.dispose());
+        playlist2.addActionListener(e -> selectSongToRemove("Rock Legends"));
+        playlist2.addActionListener(e -> frame.dispose());
+        playlist3.addActionListener(e -> selectSongToRemove("Lil Yachty Legends"));
+        playlist3.addActionListener(e -> frame.dispose());
+        playlist4.addActionListener(e -> selectSongToRemove("Summer Pop"));
+        playlist4.addActionListener(e -> frame.dispose());
+    }
+
+    private void selectSongToRemove(String playlist) {
+        JFrame frame = new JFrame();
+        JLabel select = new JLabel("Select a song to remove from " + playlist + ":");
+
+        // Creating a new buttons
+        JButton song3 = new JButton("Song 3");
+        JButton song4 = new JButton("Song 4");
+
+        // Creating a panel to add buttons
+        JPanel panel = new JPanel();
+
+        // Adding buttons and textfield to panel
+        // using add() method
+        panel.add(select);
+        panel.add(song3);
+        panel.add(song4);
+
+        // Adding panel to frame
+        frame.add(panel);
+
+        // Setting the size of frame
+        frame.setSize(300, 300);
+
+        frame.show();
+        song3.addActionListener(e -> songRemovedSuccess("Song 3"));
+        song3.addActionListener(e -> frame.dispose());
+        song4.addActionListener(e -> songRemovedSuccess("Song 4"));
+        song4.addActionListener(e -> frame.dispose());
+    }
+
+    private void songRemovedSuccess(String song) {
+        JOptionPane pane = new JOptionPane(song + " removed successfully!", JOptionPane.INFORMATION_MESSAGE);
+        JDialog dialog = pane.createDialog(this, "Status");
+        Timer timer = new Timer(2000, e -> dialog.dispose());
+        timer.setRepeats(false);
+        timer.start();
+        dialog.setVisible(true);
+    }
+
+
 
 
     public static void main(String[] args) {
