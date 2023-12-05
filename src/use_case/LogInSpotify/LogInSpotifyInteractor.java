@@ -30,7 +30,7 @@ public class LogInSpotifyInteractor implements LogInSpotifyInputBoundary {
 
         inputData.getActiveAccount().addMusicService(spotifyAccount);
 
-        presenter.prepareSuccessView();
+        presenter.loadSpotifyAccount(new LogInSpotifyOutputData().setSpotifyAccount(spotifyAccount));
 
     }
 }

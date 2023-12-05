@@ -6,4 +6,8 @@ public class OpenSpotifyLoginState {
     public void setCallbackUrl(String callbackUrl) {
         this.callbackUrl = callbackUrl;
     }
+
+    public String getCallbackUrl() {
+        return callbackUrl;
+    }
 }
