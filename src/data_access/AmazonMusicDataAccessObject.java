@@ -129,4 +129,38 @@ public class AmazonMusicDataAccessObject {
             return null;
         }
     }
+
+    // Method to create a playlist in Amazon Music
+    public String createPlaylist(Playlist playlist, String accessToken) throws IOException {
+        String url = BASE_URL + "/playlists"; // Update with the correct endpoint if necessary
+
+        // Build the JSON payload with the playlist details
+        JSONObject playlistDetails = new JSONObject();
+        playlistDetails.put("name", playlist.getName());
+        playlistDetails.put("description", "Created via Amazon Music API");
+        playlistDetails.put("public", false); // Or set to true if the playlist should be public
+
+        // Construct the playlist tracks if the API requires it
+        JSONArray tracksArray = new JSONArray();
+        for (Song song : playlist.getSongs()) {
+            tracksArray.put(new JSONObject().put("id", song.getId()));
+        }
+        playlistDetails.put("tracks", tracksArray);
+
+        RequestBody body = RequestBody.create(playlistDetails.toString(), MediaType.get("application/json; charset=utf-8"));
+        Request request = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer " + accessToken)
+                .post(body)
+                .build();
+
+        // Execute the request and handle the response
+        try (Response response = httpClient.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("Unexpected code " + response + " with body " + response.body().string());
+            }
+            JSONObject responseJson = new JSONObject(response.body().string());
+            return responseJson.getString("id");
+        }
+    }
 }
