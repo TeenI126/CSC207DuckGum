@@ -1,19 +1,18 @@
-package interface_adapter.OpenSpotifyLogin;
+package interface_adapter;
 
-import interface_adapter.ViewModel;
+import interface_adapter.OpenSpotifyLogin.OpenSpotifyLoginState;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
-public class OpenSpotifyLoginViewModel extends ViewModel {
-    OpenSpotifyLoginState state = new OpenSpotifyLoginState();
-
+public class MainViewModel extends ViewModel{
+    MainViewModelState state = new MainViewModelState();
     private final PropertyChangeSupport support = new PropertyChangeSupport(this);
-    public OpenSpotifyLoginViewModel() {
-        super("Open Log in Spotify");
+    public MainViewModel() {
+        super("Main screen");
     }
 
-    public OpenSpotifyLoginState getState() {
+    public MainViewModelState getState() {
         return state;
     }
 

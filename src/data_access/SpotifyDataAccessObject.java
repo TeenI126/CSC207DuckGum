@@ -134,7 +134,9 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
 
     }
 
-    private void updateSpotifyInformation(SpotifyAccount spotifyAccount) throws IOException {
+
+    public void updateSpotifyInformation(SpotifyAccount spotifyAccount) throws IOException {
+
         OkHttpClient client = new OkHttpClient().newBuilder().build();
 
         Request request = new Request.Builder()
@@ -243,6 +245,103 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
 
 
     }
+
+    /**
+     *
+     * @param spotifyAccount the account the playlist is being added to
+     * @param playlist playlist to copy from, Note this playlist object will not be added to playlist of account, but
+     *                 a copy of it with the new accounts playlist id
+     */
+    public void createPlaylist(SpotifyAccount spotifyAccount, Playlist playlist) throws IOException {
+        OkHttpClient client = new OkHttpClient().newBuilder().build();
+        RequestBody body = RequestBody.create(
+                MediaType.parse("application/json"),
+                "{\n" +
+                        "\"name\": \""+playlist.getName()+"\"\n" +
+                        "\"description\": \"\"\n" +
+                        "\n}"
+        );
+
+        Request request = new Request.Builder()
+                .url("https://api.spotify.com/v1/users/"+spotifyAccount.getUserID()+"/playlists")
+                .addHeader("Content-Type", "application/json")
+                .addHeader(
+                        "Authorization","Bearer " +
+                                getAccessTokenFromAccount(spotifyAccount)
+                )
+                .method("POST",body)
+                .build();
+
+
+        JSONObject responseJSON;
+
+        Response response = client.newCall(request).execute();
+        responseJSON = new JSONObject(response.body().string());
+
+        String playlistName = responseJSON.getString("name");
+        String playlistID = responseJSON.getString("id");
+
+        Playlist newPlaylist = new Playlist(playlistName);
+        newPlaylist.setId(playlistID);
+
+        for (Song song : playlist.getSongs()){
+            addSongToPlaylist(spotifyAccount,playlist,song);
+        }
+        updateSpotifyInformation(spotifyAccount);
+    }
+
+    /**
+     *
+     * @param spotifyAccount
+     * @param playlist must be in spotifyAccount.getPlaylists()
+     * @param song song to be added
+     */
+    public void addSongToPlaylist(SpotifyAccount spotifyAccount, Playlist playlist, Song song) throws IOException {
+        OkHttpClient client = new OkHttpClient().newBuilder().build();
+
+        String songURI = getSongURIfromSongObject(spotifyAccount, song).replaceAll(":","%3A");
+
+        Request request = new Request.Builder()
+                .url("https://api.spotify.com/v1/playlists/"+playlist.getId()+"/tracks?uris="+songURI)
+                .addHeader("Content-Type", "application/json")
+                .addHeader(
+                        "Authorization","Bearer " +
+                                getAccessTokenFromAccount(spotifyAccount)
+                )
+                .method("POST",null)
+                .build();
+
+
+        JSONObject responseJSON;
+
+        Response response = client.newCall(request).execute();
+        responseJSON = new JSONObject(response.body().string());
+    }
+
+    public String getSongURIfromSongObject(SpotifyAccount spotifyAccount, Song song) throws IOException {
+        OkHttpClient client = new OkHttpClient().newBuilder().build();
+
+
+        Request request = new Request.Builder()
+                .url("https://api.spotify.com/v1/search?isrc%3A"+song.getId()+"&type=track&limit=1")
+                .addHeader("Content-Type", "application/json")
+                .addHeader(
+                        "Authorization","Bearer " +
+                                getAccessTokenFromAccount(spotifyAccount)
+                )
+                .method("GET",null)
+                .build();
+
+
+        JSONObject responseJSON;
+
+        Response response = client.newCall(request).execute();
+        responseJSON = new JSONObject(response.body().string());
+
+        return responseJSON.getJSONObject("tracks").getJSONArray("items").getJSONObject(0).
+                getString("uri");
+    }
+
 
     private Song songFromSpotifyTrackJSONObject(JSONObject trackJSONObject){
         String id;

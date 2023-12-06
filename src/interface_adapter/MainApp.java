@@ -3,15 +3,34 @@ import data_access.AmazonMusicDataAccessObject;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import data_access.SpotifyDataAccessObject;
+import entities.Account;
+import entities.Playlist;
+import interface_adapter.LogInSpotify.LogInSpotifyController;
+import interface_adapter.LogInSpotify.LogInSpotifyPresenter;
+import interface_adapter.LogInSpotify.LogInSpotifyViewModel;
+import interface_adapter.OpenSpotifyLogin.OpenSpotifyLoginController;
+import interface_adapter.OpenSpotifyLogin.OpenSpotifyLoginPresenter;
+import interface_adapter.OpenSpotifyLogin.OpenSpotifyLoginState;
+import interface_adapter.OpenSpotifyLogin.OpenSpotifyLoginViewModel;
+import use_case.LogInSpotify.LogInSpotifyInteractor;
+import use_case.OpenLoginSpotify.OpenLoginSpotifyInteractor;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.net.URI;
 import java.util.Random;
+import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.io.IOException;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Objects;
 
 public class MainApp extends JFrame {
 
     private DefaultListModel<String> spotifyListModel;
+    private java.util.List<Playlist> spotifyListPlaylists;
     private DefaultListModel<String> amazonListModel;
     private DefaultListModel<String> spotifySongListModel;
     private DefaultListModel<String> amazonSongListModel;
@@ -25,6 +44,11 @@ public class MainApp extends JFrame {
 
     private static final String CLIENT_ID = "amzn1.application-oa2-client.951516002f594c19922fd8aa22fa93fc";
     private static final String REDIRECT_URI = "http://localhost:8080/callback";
+
+    SpotifyDataAccessObject spotifyDataAccessObject;
+
+    Account account = new Account();
+
 
     public MainApp() {
         // Frame settings
@@ -88,7 +112,28 @@ public class MainApp extends JFrame {
         addSongButton.addActionListener(e -> addSong());
         removeSongButton.addActionListener(e -> removeSong());
 
+        //Data Access Objects
+        spotifyDataAccessObject = new SpotifyDataAccessObject();
 
+        //OpenLoginSpotify
+        OpenSpotifyLoginViewModel openSpotifyLoginViewModel = new OpenSpotifyLoginViewModel();
+        OpenSpotifyLoginController openSpotifyLoginController = new OpenSpotifyLoginController(
+                new OpenLoginSpotifyInteractor(
+                        new OpenSpotifyLoginPresenter(openSpotifyLoginViewModel),spotifyDataAccessObject));
+
+        spotifyLoginButton.addActionListener(
+                new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        if(e.getSource().equals(spotifyLoginButton)){
+                            OpenSpotifyLoginState currentState = openSpotifyLoginViewModel.getState();
+
+                            openSpotifyLoginController.execute();
+                        }
+
+                    }
+                }
+        );
     }
 
     private void loginToAmazon() {
@@ -183,6 +228,50 @@ public class MainApp extends JFrame {
         timer.setRepeats(false);
         timer.start();
         dialog.setVisible(true);
+    }
+
+    public void propertyChange(PropertyChangeEvent evt){
+       MainViewModelState state = (MainViewModelState) evt.getNewValue();
+        if (!Objects.equals(state.getCallbackUrl(), "")){
+            try {
+                Desktop.getDesktop().browse(URI.create(state.getCallbackUrl()));
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(this, "Failed to open browser for signin");
+            }
+
+            LogInSpotify();
+        } else if (state.getSpotifyAccount() != null){
+            updateSpotifyPlaylists(state);
+
+        }
+    }
+
+    private void updateSpotifyPlaylists(MainViewModelState state) {
+        spotifyListModel.clear();
+        java.util.List<Playlist> playlists = state.getSpotifyAccount().getPlaylists();
+        int counter = 0;
+        for (Playlist playlist : playlists){
+            spotifyListModel.add(counter, playlist.getName());
+            spotifyListPlaylists.add(counter, playlist);
+            counter++;
+        }
+    }
+
+    private Playlist getSelectedSpotifyPlaylist(){
+        return  spotifyListPlaylists.get(spotifyList.getSelectedIndex());
+    }
+
+    private void LogInSpotify(){
+
+        String uri = JOptionPane.showInputDialog("Please enter url of page after spotify sign in");
+        String code = uri.substring(47);
+
+        LogInSpotifyViewModel logInSpotifyViewModel = new LogInSpotifyViewModel();
+        LogInSpotifyPresenter logInSpotifyPresenter = new LogInSpotifyPresenter();
+        LogInSpotifyController logInSpotifyController = new LogInSpotifyController(new LogInSpotifyInteractor(logInSpotifyPresenter, spotifyDataAccessObject));
+
+        logInSpotifyController.execute(code, account);
+
     }
 
     private void syncPlaylists() {
