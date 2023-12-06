@@ -1,8 +1,9 @@
 package data_access;
 
 import Secrets.Secrets;
-import entities.Builders.SongFactory;
+import entities.MusicService;
 import entities.Playlist;
+import entities.Song;
 import entities.SpotifyAccount;
 import okhttp3.*;
 import org.json.JSONArray;
@@ -25,9 +26,6 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
     private String clientID = "b273f4e8f44d44168fe8c86492e95f86";
     private final String url = "https://accounts.spotify.com/api/";
     private final String redirectURI = "https://github.com/TeenI126/CSC207DuckGum";
-    // USER DETAILS
-    private String displayName;
-    private String userID;
     public String getLoginPage(){
         return getLoginPage(false);
     }
@@ -50,19 +48,49 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
 
     }
 
-    /**
-     * TEMPORARY MEASURE, after a user logs into their spotify account, they will be redirected to a URI containing
-     * a code linked to a user that can be exchanged for a token.
-     *
-     * @param uri
-     */
-    public String getCodeFromURI(String uri){
-        //remove base uri, leaving extension with code left.
-        return uri.substring(47);
+    private String getAccessTokenFromAccount(MusicService spotifyAccount) throws IOException {
+        if (spotifyAccount.getAccessTokenExpires().isBefore(LocalDateTime.now())){
+            refreshAccessToken(spotifyAccount);
+        }
+        return spotifyAccount.getUserAccessToken();
     }
 
-    private void refreshAccessToken() {
-        //TODO
+
+    private void refreshAccessToken(MusicService spotifyAccount) throws IOException {
+        OkHttpClient client = new OkHttpClient().newBuilder().build();
+        RequestBody body = RequestBody.create(
+                MediaType.parse("application/x-www-form-urlencoded"),
+                "grant_type=refresh_token&refresh_token="+spotifyAccount.getRefreshToken()
+        );
+
+        Request request = new Request.Builder()
+                .url(url + "token")
+                .addHeader("Content-Type", "application/x-www-form-urlencoded")
+                .addHeader(
+                        "Authorization","Basic " +
+                                Base64.getEncoder().encodeToString((clientID+":"+clientSecret).getBytes())
+                )
+                .method("POST",body)
+                .build();
+
+
+        JSONObject responseJSON;
+
+        Response response = client.newCall(request).execute();
+        responseJSON = new JSONObject(response.body().string());
+
+        if (responseJSON.has("refresh_token")){ //refreshed refresh token only appears if refresh not still valid
+            String newRefreshToken = responseJSON.getString("refresh_token");
+            spotifyAccount.setRefreshToken(newRefreshToken);
+        }
+
+        String newAccessToken = responseJSON.getString("access_token");
+        LocalDateTime newExpires = LocalDateTime.now().plusSeconds(responseJSON.getInt("expires_in")-60);
+
+        spotifyAccount.setAccessToken(newAccessToken);
+
+        spotifyAccount.setAccessTokenExpires(newExpires);
+
     }
 
     public SpotifyAccount createSpotifyAccountFromCode(String code) throws IOException, FailedLoginException {
@@ -100,17 +128,19 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
 
         SpotifyAccount spotifyAccount =  new SpotifyAccount(accessToken,refreshToken,accessTokenExpires);
 
-        updateSpotifyInformation(spotifyAccount, accessToken);//adds user id and display name
+        updateSpotifyInformation(spotifyAccount);//adds user id and display name
 
         return spotifyAccount;
 
     }
 
-    private void updateSpotifyInformation(SpotifyAccount spotifyAccount, String accessToken) throws IOException {
+
+    public void updateSpotifyInformation(SpotifyAccount spotifyAccount) throws IOException {
+
         OkHttpClient client = new OkHttpClient().newBuilder().build();
 
         Request request = new Request.Builder()
-                .addHeader("Authorization", "Bearer " + accessToken)
+                .addHeader("Authorization", "Bearer " + getAccessTokenFromAccount(spotifyAccount))
                 .url("https://api.spotify.com/v1/me")
                 .method("GET",null)
                 .build();
@@ -126,16 +156,16 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
 
         spotifyAccount.setUserID(userID);
         spotifyAccount.setDisplayName(displayName);
-        spotifyAccount.setPlaylists(getPlaylists(accessToken,spotifyAccount));
+        spotifyAccount.setPlaylists(getPlaylists(spotifyAccount));
     }
 
-    public java.util.List<Playlist> getPlaylists(String accessToken, SpotifyAccount spotifyAccount) {
+    public java.util.List<Playlist> getPlaylists(SpotifyAccount spotifyAccount) throws IOException {
         OkHttpClient client = new OkHttpClient().newBuilder().build();
 
         Request request = new Request.Builder()
                 .url("https://api.spotify.com/v1/users/"+spotifyAccount.getUserID()+"/playlists")
                 .method("GET",null)
-                .addHeader("Authorization", "Bearer " + spotifyAccount.getUserAccessToken())
+                .addHeader("Authorization", "Bearer " + getAccessTokenFromAccount(spotifyAccount))
                 .build();
 
         JSONObject responseJSON;
@@ -155,21 +185,25 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
 
         for (int i = 0; i < rawPlaylists.length(); i++){
             JSONObject p = rawPlaylists.getJSONObject(i);
-            returnPlaylists.add(getPlaylist(accessToken, p.getString("href")));
+            returnPlaylists.add(getPlaylist(spotifyAccount, p.getString("href")));
 
         }
         return returnPlaylists;
-        //TODO overflowed responses
     }
 
-    public Playlist getPlaylist(String accessToken, String spotifyPlaylistHref) {
+    public Playlist getPlaylist(SpotifyAccount spotifyAccount, String spotifyPlaylistHref) {
         OkHttpClient client = new OkHttpClient().newBuilder().build();
 
-        Request request = new Request.Builder()
-                .url(spotifyPlaylistHref)
-                .method("GET",null)
-                .addHeader("Authorization", "Bearer " + accessToken)
-                .build();
+        Request request;
+        try {
+            request = new Request.Builder()
+                    .url(spotifyPlaylistHref)
+                    .method("GET",null)
+                    .addHeader("Authorization", "Bearer " + getAccessTokenFromAccount(spotifyAccount))
+                    .build();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         JSONObject responseJSON;
         try {
@@ -186,15 +220,146 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
         Playlist p = new Playlist(responseJSON.getString("name"));
         for (int i = 0; i < items.length();i++){
             try{
-                p.addSong(SongFactory.songFromSpotifyTrackJSONObject(items.getJSONObject(i).getJSONObject("track")));
+                p.addSong(songFromSpotifyTrackJSONObject(items.getJSONObject(i).getJSONObject("track")));
             } catch (JSONException ignored){
+                try {
+                    Request requestRec = new Request.Builder()
+                            .url(spotifyPlaylistHref)
+                            .method("GET",null)
+                            .addHeader("Authorization", "Bearer " + getAccessTokenFromAccount(spotifyAccount))
+                            .build();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
 
+                try {
+                    Response response = client.newCall(request).execute();
+                    responseJSON = new JSONObject(response.body().string());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
 
         return p;
 
-        //TODO loop over next pages for lage playlists that exceec response limit
+
+    }
+
+    /**
+     *
+     * @param spotifyAccount the account the playlist is being added to
+     * @param playlist playlist to copy from, Note this playlist object will not be added to playlist of account, but
+     *                 a copy of it with the new accounts playlist id
+     */
+    public void createPlaylist(SpotifyAccount spotifyAccount, Playlist playlist) throws IOException {
+        OkHttpClient client = new OkHttpClient().newBuilder().build();
+        RequestBody body = RequestBody.create(
+                MediaType.parse("application/json"),
+                "{\n" +
+                        "\"name\": \""+playlist.getName()+"\"\n" +
+                        "\"description\": \"\"\n" +
+                        "\n}"
+        );
+
+        Request request = new Request.Builder()
+                .url("https://api.spotify.com/v1/users/"+spotifyAccount.getUserID()+"/playlists")
+                .addHeader("Content-Type", "application/json")
+                .addHeader(
+                        "Authorization","Bearer " +
+                                getAccessTokenFromAccount(spotifyAccount)
+                )
+                .method("POST",body)
+                .build();
+
+
+        JSONObject responseJSON;
+
+        Response response = client.newCall(request).execute();
+        responseJSON = new JSONObject(response.body().string());
+
+        String playlistName = responseJSON.getString("name");
+        String playlistID = responseJSON.getString("id");
+
+        Playlist newPlaylist = new Playlist(playlistName);
+        newPlaylist.setId(playlistID);
+
+        for (Song song : playlist.getSongs()){
+            addSongToPlaylist(spotifyAccount,playlist,song);
+        }
+        updateSpotifyInformation(spotifyAccount);
+    }
+
+    /**
+     *
+     * @param spotifyAccount
+     * @param playlist must be in spotifyAccount.getPlaylists()
+     * @param song song to be added
+     */
+    public void addSongToPlaylist(SpotifyAccount spotifyAccount, Playlist playlist, Song song) throws IOException {
+        OkHttpClient client = new OkHttpClient().newBuilder().build();
+
+        String songURI = getSongURIfromSongObject(spotifyAccount, song).replaceAll(":","%3A");
+
+        Request request = new Request.Builder()
+                .url("https://api.spotify.com/v1/playlists/"+playlist.getId()+"/tracks?uris="+songURI)
+                .addHeader("Content-Type", "application/json")
+                .addHeader(
+                        "Authorization","Bearer " +
+                                getAccessTokenFromAccount(spotifyAccount)
+                )
+                .method("POST",null)
+                .build();
+
+
+        JSONObject responseJSON;
+
+        Response response = client.newCall(request).execute();
+        responseJSON = new JSONObject(response.body().string());
+    }
+
+    public String getSongURIfromSongObject(SpotifyAccount spotifyAccount, Song song) throws IOException {
+        OkHttpClient client = new OkHttpClient().newBuilder().build();
+
+
+        Request request = new Request.Builder()
+                .url("https://api.spotify.com/v1/search?isrc%3A"+song.getId()+"&type=track&limit=1")
+                .addHeader("Content-Type", "application/json")
+                .addHeader(
+                        "Authorization","Bearer " +
+                                getAccessTokenFromAccount(spotifyAccount)
+                )
+                .method("GET",null)
+                .build();
+
+
+        JSONObject responseJSON;
+
+        Response response = client.newCall(request).execute();
+        responseJSON = new JSONObject(response.body().string());
+
+        return responseJSON.getJSONObject("tracks").getJSONArray("items").getJSONObject(0).
+                getString("uri");
+    }
+
+
+    private Song songFromSpotifyTrackJSONObject(JSONObject trackJSONObject){
+        String id;
+        List<String> artists = new ArrayList<String>();
+        String name;
+        String album;
+
+        id = trackJSONObject.getJSONObject("external_ids").getString("isrc");
+
+        JSONArray artistsRaw = trackJSONObject.getJSONArray("artists");
+        for (int i = 0; i < artistsRaw.length(); i++){
+            artists.add(artistsRaw.getJSONObject(i).getString("name"));
+        }
+
+        name = trackJSONObject.getString("name");
+        album = trackJSONObject.getJSONObject("album").getString("name");
+
+        return new Song(id,artists,name,album);
     }
     private String encodeJSON(JSONObject jsonObject){
         StringBuilder retString = new StringBuilder();
@@ -209,30 +374,5 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
         return retString.toString().replaceAll(" ","+");
     }
 
-//    /**
-//     * This is for an application token NOT linked to a user
-//     */
-//    void updateToken(){
-//
-//        MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
-//        OkHttpClient client = new OkHttpClient().newBuilder().build();
-//        RequestBody body = RequestBody.create(mediaType, "grant_type:client_credentials");
-//        Request request = new Request.Builder().url(url+"token")
-//                .method("POST",body)
-//                .addHeader("Authorization", "Basic" + Base64.getEncoder().encodeToString((clientID+":"+clientSecret).getBytes()))
-//                .addHeader("Content-Type", "application/x-www-form-urlencoded")
-//                .build();
-//
-//        try {
-//            Response response = client.newCall(request).execute();
-//            JSONObject responseJSON = new JSONObject(response.body().string());
-//
-//            String accessToken = responseJSON.getString("access_token");
-//
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
 
 }
-

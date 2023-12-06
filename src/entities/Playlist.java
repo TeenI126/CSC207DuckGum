@@ -22,6 +22,14 @@ public class Playlist {
         songs.add(song);
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public void removeSong(Song song) {
         int n = songs.size();
         for (int i = 0; i < n; i++) {

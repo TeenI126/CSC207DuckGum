@@ -20,7 +20,9 @@ public class SpotifyAccount extends MusicService {
         return accessToken;
     }
 
+
     public void extendPlaylists(List<Playlist> playlists){
         this.playlists.addAll(playlists);
     }
+
 }
