@@ -1,4 +1,7 @@
 package interface_adapter;
+import data_access.AmazonMusicDataAccessObject;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import data_access.SpotifyDataAccessObject;
 import entities.Account;
@@ -16,6 +19,7 @@ import use_case.OpenLoginSpotify.OpenLoginSpotifyInteractor;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.util.Random;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.io.IOException;
@@ -38,6 +42,8 @@ public class MainApp extends JFrame {
     private JButton amazonLoginButton;
     private JButton syncPlaylistsButton;
 
+    private static final String CLIENT_ID = "amzn1.application-oa2-client.951516002f594c19922fd8aa22fa93fc";
+    private static final String REDIRECT_URI = "http://localhost:8080/callback";
 
     SpotifyDataAccessObject spotifyDataAccessObject;
 
@@ -97,8 +103,9 @@ public class MainApp extends JFrame {
         amazonPanel.add(transferPanel, BorderLayout.SOUTH);
 
         // Action Listeners
-        spotifyLoginButton.addActionListener(e -> loginToService("Spotify"));
-        amazonLoginButton.addActionListener(e -> loginToService("Amazon"));
+        //spotifyLoginButton.addActionListener(e -> loginToService("Spotify"));
+        //amazonLoginButton.addActionListener(e -> loginToService("Amazon"));
+        amazonLoginButton.addActionListener(e -> loginToAmazon());
         transferToAmazonButton.addActionListener(e -> transferPlaylists("Spotify to Amazon Music"));
         transferToSpotifyButton.addActionListener(e -> transferPlaylists("Amazon Music to Spotify"));
         syncPlaylistsButton.addActionListener(e -> syncPlaylists());
@@ -128,41 +135,89 @@ public class MainApp extends JFrame {
                 }
         );
     }
-    private void loginToService(String service) {
-        if (service.equals("Spotify")) {
-            spotifyListModel.clear();
-            spotifySongListModel.clear();
 
-            // Adding playlists
-            spotifyListModel.addElement("Chill Vibes");
-            spotifyListModel.addElement("Workout Hits");
-            spotifyListModel.addElement("Good Vibes");
-            spotifyListModel.addElement("Drake Stuff");
+    private void loginToAmazon() {
+        try {
+            String amazonLoginUrl = String.format("https://www.amazon.com/ap/oa?client_id=%s&scope=profile&response_type=code&redirect_uri=%s", CLIENT_ID, REDIRECT_URI);
+            Desktop.getDesktop().browse(new URI(amazonLoginUrl));
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error opening Amazon login page: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
 
-            spotifyLoginButton.setText("Successfully logged in");
-            spotifyLoginButton.setBackground(Color.GREEN);
-        } else if (service.equals("Amazon")) {
+    public void handleAmazonLoginCallback(String authorizationCode) {
+        // Exchange authorization code for access token
+        String tokenResponse = AmazonMusicDataAccessObject.exchangeAuthorizationCode(authorizationCode);
+        JSONObject tokenJson = new JSONObject(tokenResponse);
+        String accessToken = tokenJson.getString("access_token");
+
+        // Fetch user profile and playlists
+        String userPlaylistsJson = AmazonMusicDataAccessObject.fetchUserPlaylists(accessToken);
+
+        updateAmazonPlaylistDisplay(userPlaylistsJson);
+    }
+
+    // Method to update Amazon playlist display
+    private void updateAmazonPlaylistDisplay(String playlistsJson) {
+        SwingUtilities.invokeLater(() -> {
             amazonListModel.clear();
             amazonSongListModel.clear();
 
-            // Adding playlists
-            amazonListModel.addElement("Pop Chartbusters");
-            amazonListModel.addElement("Rock Legends");
-            amazonListModel.addElement("Lil Yachty Legends");
-            amazonListModel.addElement("Summer Pop");
+            // Parse playlists JSON and update the list models
+            // Assuming playlistsJson is a JSON array of playlist objects
+            JSONObject playlistsObject = new JSONObject(playlistsJson);
+            JSONArray playlistsArray = playlistsObject.getJSONArray("playlists");
+            for (int i = 0; i < playlistsArray.length(); i++) {
+                JSONObject playlist = playlistsArray.getJSONObject(i);
+                String playlistName = playlist.getString("name");
+                amazonListModel.addElement(playlistName);
 
-            // Adding songs to the song list model for Amazon playlists
-            amazonSongListModel.addElement("Pop Song 1");
+                // Add songs to amazonSongListModel if needed
+            }
 
             amazonLoginButton.setText("Successfully logged in");
             amazonLoginButton.setBackground(Color.GREEN);
-        }
-        spotifySongList.repaint();
-        spotifySongList.revalidate();
-
-        amazonSongList.repaint();
-        amazonSongList.revalidate();
+        });
     }
+    // Test
+//    void loginToService(String service) {
+//        if (service.equals("Spotify")) {
+//            spotifyListModel.clear();
+//            spotifySongListModel.clear();
+//
+//            // Adding playlists
+//            spotifyListModel.addElement("Chill Vibes");
+//            spotifyListModel.addElement("Workout Hits");
+//            spotifyListModel.addElement("Good Vibes");
+//            spotifyListModel.addElement("Drake Stuff");
+//
+//            // Adding songs to the song list model for Spotify playlists
+//            spotifySongListModel.addElement("Chill Song 1");
+//
+//            spotifyLoginButton.setText("Successfully logged in");
+//            spotifyLoginButton.setBackground(Color.GREEN);
+//        } else if (service.equals("Amazon")) {
+//            amazonListModel.clear();
+//            amazonSongListModel.clear();
+//
+//            // Adding playlists
+//            amazonListModel.addElement("Pop Chartbusters");
+//            amazonListModel.addElement("Rock Legends");
+//            amazonListModel.addElement("Lil Yachty Legends");
+//            amazonListModel.addElement("Summer Pop");
+//
+//            // Adding songs to the song list model for Amazon playlists
+//            amazonSongListModel.addElement("Pop Song 1");
+//
+//            amazonLoginButton.setText("Successfully logged in");
+//            amazonLoginButton.setBackground(Color.GREEN);
+//        }
+//        spotifySongList.repaint();
+//        spotifySongList.revalidate();
+//
+//        amazonSongList.repaint();
+//        amazonSongList.revalidate();
+//    }
 
 
 
@@ -223,6 +278,7 @@ public class MainApp extends JFrame {
         // Dummy sync playlists logic
         // ...
     }
+
 
     private void addSong() {
         JFrame frame = new JFrame("Select A Music Service:");
@@ -520,8 +576,6 @@ public class MainApp extends JFrame {
         timer.start();
         dialog.setVisible(true);
     }
-
-
 
 
     public static void main(String[] args) {
