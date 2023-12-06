@@ -28,7 +28,6 @@ public class TransferPlaylistInteractor implements TransferPlaylistInputBoundary
             if (inputData.getSourceService().equalsIgnoreCase("Spotify")) {
                 playlistToTransfer = spotifyDAO.getPlaylist(inputData.getSpotifyAccessToken(), inputData.getPlaylistId());
                 // Convert Spotify playlist to Amazon format and create it
-                // Create a createPlaylist method similar to the SpotifyDataAccessObject
                 amazonDAO.createPlaylist(playlistToTransfer, inputData.getAmazonAccessToken());
                 outputBoundary.presentTransferResult(new TransferPlaylistOutputData(true, "Playlist transferred from Spotify to Amazon Music successfully."));
             } else if (inputData.getSourceService().equalsIgnoreCase("Amazon")) {
@@ -50,7 +49,7 @@ public class TransferPlaylistInteractor implements TransferPlaylistInputBoundary
         Playlist spotifyPlaylist = spotifyDAO.getPlaylist(spotifyAccessToken, playlistId);
         List<Song> mappedSongs = mapSongsForAmazon(spotifyPlaylist.getSongs());
         Playlist amazonPlaylist = createAmazonPlaylist(mappedSongs, spotifyPlaylist.getName(), amazonAccessToken);
-        amazonDAO.createPlaylist(amazonPlaylist, amazonAccessToken); // Implement this method in Amazon Music DAO
+        amazonDAO.createPlaylist(amazonPlaylist, amazonAccessToken);
     }
 
     // Transfer from Amazon to Spotify
@@ -58,7 +57,8 @@ public class TransferPlaylistInteractor implements TransferPlaylistInputBoundary
         Playlist amazonPlaylist = amazonDAO.getPlaylist(amazonAccessToken, playlistId);
         List<Song> mappedSongs = mapSongsForSpotify(amazonPlaylist.getSongs());
         Playlist spotifyPlaylist = createSpotifyPlaylist(mappedSongs, amazonPlaylist.getName(), spotifyAccessToken);
-        spotifyDAO.createPlaylist(spotifyPlaylist, spotifyAccessToken); // Implement this method in Spotify DAO
+        String userId = spotifyDAO.getCurrentUserId(inputData.getSpotifyAccessToken());
+        spotifyDAO.createPlaylist(userId, playlistToTransfer, inputData.getSpotifyAccessToken());
     }
 
     // Map songs from a Spotify playlist for Amazon Music
@@ -85,33 +85,5 @@ public class TransferPlaylistInteractor implements TransferPlaylistInputBoundary
             }
         }
         return spotifySongs;
-    }
-
-    // Create a new Amazon playlist with mapped songs
-    private Playlist createAmazonPlaylist(List<Song> songs, String playlistName, String amazonAccessToken) {
-        // Implement playlist creation logic here for Amazon Music
-        // The AmazonMusicDataAccessObject should have a method to create a playlist given a list of songs
-        return new Playlist(playlistName, songs); // This constructor assumes Playlist can take a name and list of songs
-    }
-
-    // Create a new Spotify playlist with mapped songs
-    private Playlist createSpotifyPlaylist(List<Song> songs, String playlistName, String spotifyAccessToken) {
-        // Implement playlist creation logic here for Spotify
-        // The SpotifyDataAccessObject should have a method to create a playlist given a list of songs
-        return new Playlist(playlistName, songs); // This constructor assumes Playlist can take a name and list of songs
-    }
-
-    // Find a song on Amazon Music that matches the Spotify song
-    private Song findSongOnAmazon(Song spotifySong) {
-        // Implement logic to find a matching song on Amazon Music
-        // This would likely involve searching the Amazon Music catalog by track name and artist
-        return null; // Placeholder for the actual song object
-    }
-
-    // Find a song on Spotify that matches the Amazon song
-    private Song findSongOnSpotify(Song amazonSong) {
-        // Implement logic to find a matching song on Spotify
-        // This would likely involve searching the Spotify catalog by track name and artist
-        return null; // Placeholder for the actual song object
     }
 }
