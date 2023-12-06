@@ -5,7 +5,10 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.URL;
+import java.util.List;
+
 import org.json.JSONObject;
+import org.json.JSONArray;
 
 public class AmazonMusicDataAccessObject {
 
@@ -77,7 +80,7 @@ public class AmazonMusicDataAccessObject {
         return accessToken;
     }
 
-    private static String fetchUserPlaylists(String accessToken) {
+    public static String fetchUserPlaylists(String accessToken) {
         try {
             URL url = new URL("https://api.music.amazon.com/v1/me/playlists");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -130,39 +133,54 @@ public class AmazonMusicDataAccessObject {
         }
     }
 
-    // Method to create a playlist in Amazon Music
-    public String createPlaylist(Playlist playlist, String accessToken) throws IOException {
-        String url = BASE_URL + "/playlists"; // Update with the correct endpoint if necessary
+    // Method to create a new playlist on Amazon Music
+    public String createPlaylist(String name, List<String> trackIds, String accessToken) throws IOException {
+        URL url = new URL("https://api.music.amazon.com/v1/me/playlists");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Authorization", "Bearer " + accessToken);
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setDoOutput(true);
 
-        // Build the JSON payload with the playlist details
-        JSONObject playlistDetails = new JSONObject();
-        playlistDetails.put("name", playlist.getName());
-        playlistDetails.put("description", "Created via Amazon Music API");
-        playlistDetails.put("public", false); // Or set to true if the playlist should be public
+        // Create a JSON object for the new playlist
+        JSONObject playlistJson = new JSONObject();
+        playlistJson.put("name", name);
+        playlistJson.put("trackIds", new JSONArray(trackIds)); // This is a guess; actual key name may differ
 
-        // Construct the playlist tracks if the API requires it
-        JSONArray tracksArray = new JSONArray();
-        for (Song song : playlist.getSongs()) {
-            tracksArray.put(new JSONObject().put("id", song.getId()));
+        // Write JSON to the request body
+        try (OutputStream os = connection.getOutputStream()) {
+            os.write(playlistJson.toString().getBytes());
+            os.flush();
         }
-        playlistDetails.put("tracks", tracksArray);
 
-        RequestBody body = RequestBody.create(playlistDetails.toString(), MediaType.get("application/json; charset=utf-8"));
-        Request request = new Request.Builder()
-                .url(url)
-                .addHeader("Authorization", "Bearer " + accessToken)
-                .post(body)
-                .build();
-
-        // Execute the request and handle the response
-        try (Response response = httpClient.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                throw new IOException("Unexpected code " + response + " with body " + response.body().string());
+        // Read the response from the server
+        StringBuilder response = new StringBuilder();
+        if (connection.getResponseCode() == HttpURLConnection.HTTP_CREATED) {
+            // Read the input stream if the playlist was created successfully
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    response.append(line);
+                }
             }
-            JSONObject responseJson = new JSONObject(response.body().string());
-            return responseJson.getString("id");
+        } else {
+            // Read the error stream if there was an error during playlist creation
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getErrorStream()))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    response.append(line);
+                }
+            }
+            throw new IOException("Failed to create playlist: " + response.toString());
         }
+
+        // Close the connection
+        connection.disconnect();
+
+        // Return the response from the server
+        return response.toString();
     }
+
 }
 
 

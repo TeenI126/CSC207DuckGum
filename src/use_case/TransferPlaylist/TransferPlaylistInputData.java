@@ -47,4 +47,23 @@ public class TransferPlaylistInputData {
 
         return toAccount;
     }
+
+    public String getSourceService() {
+        return null;
+    }
+
+    public String getSourceAccessToken() {
+        String o = null;
+        return o;
+    }
+
+    public String getTargetAccessToken() {
+        String o = null;
+        return o;
+    }
+
+    public String getPlaylistId() {
+        String o = null;
+        return null;
+    }
 }
