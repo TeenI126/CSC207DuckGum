@@ -19,12 +19,10 @@ import use_case.OpenLoginSpotify.OpenLoginSpotifyInteractor;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.util.Random;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Objects;
 
 public class MainApp extends JFrame {
@@ -40,7 +38,7 @@ public class MainApp extends JFrame {
     private JList<String> amazonSongList;
     private JButton spotifyLoginButton;
     private JButton amazonLoginButton;
-    private JButton syncPlaylistsButton;
+    private JButton exportCSVButton;
 
     private static final String CLIENT_ID = "amzn1.application-oa2-client.951516002f594c19922fd8aa22fa93fc";
     private static final String REDIRECT_URI = "http://localhost:8080/callback";
@@ -89,8 +87,8 @@ public class MainApp extends JFrame {
         JButton transferToSpotifyButton = new JButton("Transfer to Spotify");
         transferPanel.add(transferToAmazonButton);
         transferPanel.add(transferToSpotifyButton);
-        syncPlaylistsButton = new JButton("Sync Playlists");
-        transferPanel.add(syncPlaylistsButton);
+        exportCSVButton = new JButton("Export playlists to CSV");
+        transferPanel.add(exportCSVButton);
 
         // Add song and remove song buttons
         JButton addSongButton = new JButton("Add Song");
@@ -108,7 +106,7 @@ public class MainApp extends JFrame {
         amazonLoginButton.addActionListener(e -> loginToAmazon());
         transferToAmazonButton.addActionListener(e -> transferPlaylists("Spotify to Amazon Music"));
         transferToSpotifyButton.addActionListener(e -> transferPlaylists("Amazon Music to Spotify"));
-        syncPlaylistsButton.addActionListener(e -> syncPlaylists());
+        exportCSVButton.addActionListener(e -> exportPlaylistCSV());
         addSongButton.addActionListener(e -> addSong());
         removeSongButton.addActionListener(e -> removeSong());
 
@@ -274,7 +272,7 @@ public class MainApp extends JFrame {
 
     }
 
-    private void syncPlaylists() {
+    private void exportPlaylistCSV() {
         // Dummy sync playlists logic
         // ...
     }
