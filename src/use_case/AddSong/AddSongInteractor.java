@@ -17,7 +17,7 @@ public class AddSongInteractor implements AddSongInputBoundary{
         Song song = addSongInputData.getSong();
         if (!playlist.contains(song)) {
             playlist.addSong(song);
-            AddSongOutputData addSongOutputData = new AddSongOutputData(song);
+            AddSongOutputData addSongOutputData = new AddSongOutputData(playlist, song);
             addSongOutputBoundary.prepareSuccessView(addSongOutputData);
         } else {
             addSongOutputBoundary.prepareFailView("Song already exists in playlist.");
