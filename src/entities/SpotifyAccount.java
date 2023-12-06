@@ -24,4 +24,5 @@ public class SpotifyAccount extends MusicService {
     public void extendPlaylists(List<Playlist> playlists){
         this.playlists.addAll(playlists);
     }
+
 }

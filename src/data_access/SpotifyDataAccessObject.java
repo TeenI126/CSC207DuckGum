@@ -134,7 +134,9 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
 
     }
 
+
     public void updateSpotifyInformation(SpotifyAccount spotifyAccount) throws IOException {
+
         OkHttpClient client = new OkHttpClient().newBuilder().build();
 
         Request request = new Request.Builder()
