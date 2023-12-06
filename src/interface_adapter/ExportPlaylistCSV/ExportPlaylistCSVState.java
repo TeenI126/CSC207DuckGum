@@ -1,35 +1,29 @@
 package interface_adapter.ExportPlaylistCSV;
 
-import entities.Account;
+import entities.MusicService;
 import entities.Playlist;
 
 public class ExportPlaylistCSVState {
-    private String userID = "";
     private Playlist playlist = null;
     private String playlistError = null;
-    private Account account = null;
+    private MusicService musicService = null;
 
     public ExportPlaylistCSVState(ExportPlaylistCSVState copy) {
-        this.userID = copy.userID;
         this.playlist = copy.playlist;
         this.playlistError = copy.playlistError;
-        this.account = copy.account;
+        this.musicService = copy.musicService;
     }
 
     public ExportPlaylistCSVState() {
 
     }
 
-    public String getUserID() {
-        return userID;
-    }
-
     public Playlist getPlaylist() {
         return playlist;
     }
 
-    public Account getAccount() {
-        return account;
+    public MusicService getMusicService() {
+        return musicService;
     }
 
     public String getPlaylistError() {
@@ -40,15 +34,11 @@ public class ExportPlaylistCSVState {
         this.playlist = playlist;
     }
 
-    public void setAccount(Account account) {
-        this.account = account;
+    public void setMusicService(MusicService musicService) {
+        this.musicService = musicService;
     }
 
     public void setPlaylistError(String playlistError) {
         this.playlistError = playlistError;
-    }
-
-    public void setUserID(String userID) {
-        this.userID = userID;
     }
 }
