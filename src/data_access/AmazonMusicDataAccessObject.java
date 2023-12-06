@@ -1,14 +1,17 @@
 package data_access;
 
 import com.sun.net.httpserver.HttpServer;
-import java.io.*;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.List;
-
-import org.json.JSONObject;
-import org.json.JSONArray;
 
 public class AmazonMusicDataAccessObject {
 
@@ -41,7 +44,7 @@ public class AmazonMusicDataAccessObject {
                 responseText = "User Profile: " + userProfile + "\n\nPlaylists: " + userPlaylistsJson;
 
                 // Update GUI with user profile and playlists
-                AmazonMusicDataAccessObject.updateUserInfo(userProfile, userPlaylistsJson);
+                //AmazonMusicDataAccessObject.updateUserInfo(userProfile, userPlaylistsJson);
 
                 // Prepare response text for the web
                 String responseTextx = "Login Successful!\n\nUser Profile:\n" + userProfile + "\n\nPlaylists:\n" + userPlaylistsJson;
@@ -104,7 +107,7 @@ public class AmazonMusicDataAccessObject {
         return sb.toString();
     }
 
-    private static String exchangeAuthorizationCode(String authorizationCode) {
+    public static String exchangeAuthorizationCode(String authorizationCode) {
         try {
             URL url = new URL("https://api.amazon.com/auth/o2/token");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();

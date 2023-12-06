@@ -1,7 +1,5 @@
 package entities;
 
-import Exceptions.ExpiredAccessTokenException;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,11 +23,6 @@ public abstract class MusicService {
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
-
-    public String getUserAccessToken() {
-        return accessToken;
-    }
-
 
     public String getUserAccessToken() {
         return accessToken;

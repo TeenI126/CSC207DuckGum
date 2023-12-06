@@ -8,7 +8,7 @@ public class OpenLoginSpotifyInteractor implements OpenLoginSpotifyInputBoundary
         this.dataAccessObject = dataAccessObject;
     }
     public void execute() {
-        OpenLoginSpotifyOutputData outputData = new OpenLoginSpotifyOutputData(dataAccessObject.getLoginPage());
+        OpenLoginSpotifyOutputData outputData = new OpenLoginSpotifyOutputData(dataAccessObject.getLoginPage(true));
         openPresenter.openLoginCallbackURL(outputData);
     }
 }
