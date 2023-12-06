@@ -15,7 +15,7 @@ public class RemoveSongInteractor implements RemoveSongInputBoundary{
         Playlist playlist = removeSongInputData.getPlaylist();
         Song song = removeSongInputData.getSong();
         playlist.removeSong(song);
-        RemoveSongOutputData removeSongOutputData = new RemoveSongOutputData(song);
+        RemoveSongOutputData removeSongOutputData = new RemoveSongOutputData(playlist, song);
         removeSongOutputBoundary.prepareSuccessView(removeSongOutputData);
     }
 }
