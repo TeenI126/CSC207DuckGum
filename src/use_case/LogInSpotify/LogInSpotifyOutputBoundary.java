@@ -1,6 +1,8 @@
 package use_case.LogInSpotify;
 
+import entities.SpotifyAccount;
+
 public interface LogInSpotifyOutputBoundary {
-    void prepareSuccessView();
+    void loadSpotifyAccount(LogInSpotifyOutputData data);
     void prepareFailView();
 }

@@ -2,6 +2,8 @@ package interface_adapter.LogInSpotify;
 
 import interface_adapter.ViewModel;
 
+import java.beans.PropertyChangeListener;
+
 public class LogInSpotifyViewModel extends ViewModel {
     LogInSpotifyState state = new LogInSpotifyState();
 
@@ -19,7 +21,7 @@ public class LogInSpotifyViewModel extends ViewModel {
     }
 
     @Override
-    public void addPropertyChangeListener() {
-        //TODO addPropertyChangeListener for LogInSpotifyViewModel
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+
     }
 }

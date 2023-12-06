@@ -26,9 +26,10 @@ public abstract class MusicService {
         this.displayName = displayName;
     }
 
-    public String getUserID() {
-        return userID;
+    public String getUserAccessToken() {
+        return accessToken;
     }
+
 
     public String getUserAccessToken() {
         return accessToken;
@@ -56,6 +57,10 @@ public abstract class MusicService {
 
     public void setPlaylists(List<Playlist> playlists) {
         this.playlists = playlists;
+    }
+
+    public List<Playlist> getPlaylists() {
+        return playlists;
     }
 
     public String getUserID() {
