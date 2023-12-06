@@ -1,12 +1,17 @@
 package use_case.TransferPlaylist;
 
+import data_access.AmazonMusicDataAccessObject;
+import data_access.SpotifyDataAccessObject;
 import entities.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class TransferPlaylistInteractor implements TransferPlaylistInputBoundary {
 
-    private MusicServiceAdapter spotifyAdapter;
-    private MusicServiceAdapter amazonAdapter;
-    private TransferPlaylistOutputBoundary outputBoundary;
+    private final MusicServiceAdapter spotifyAdapter;
+    private final MusicServiceAdapter amazonAdapter;
+    private final TransferPlaylistOutputBoundary outputBoundary;
 
     public TransferPlaylistInteractor(MusicServiceAdapter spotifyAdapter,
                                       MusicServiceAdapter amazonAdapter,
@@ -16,7 +21,6 @@ public class TransferPlaylistInteractor implements TransferPlaylistInputBoundary
         this.outputBoundary = outputBoundary;
     }
 
-    @Override
     public void transferPlaylist(TransferPlaylistInputData inputData) {
         try {
             if (inputData.getSourceService().equalsIgnoreCase("Spotify")) {
@@ -46,39 +50,53 @@ interface MusicServiceAdapter {
 
 // Implementation of the Spotify Adapter
 class SpotifyAdapter implements MusicServiceAdapter {
-    private SpotifyDataAccessObject spotifyDAO;
+    private final SpotifyDataAccessObject spotifyDAO;
 
     public SpotifyAdapter(SpotifyDataAccessObject spotifyDAO) {
         this.spotifyDAO = spotifyDAO;
     }
 
+    public Playlist fetchPlaylist(SpotifyAccount spotifyAccount, String Href) throws Exception {
+        return spotifyDAO.getPlaylist(spotifyAccount, Href);
+    }
+
+    public void createPlaylist(SpotifyAccount spotifyAccount, Playlist playlist) throws Exception {
+        spotifyDAO.createPlaylist(spotifyAccount, playlist);
+    }
+
     @Override
     public Playlist fetchPlaylist(String accessToken, String playlistId) throws Exception {
-        return spotifyDAO.getPlaylist(accessToken, playlistId);
+        return null;
     }
 
     @Override
     public void createPlaylist(Playlist playlist, String accessToken) throws Exception {
-        String userId = spotifyDAO.getCurrentUserId(accessToken);
-        spotifyDAO.createPlaylist(userId, playlist, accessToken);
+
     }
 }
 
 // Implementation of the Amazon Adapter
 class AmazonAdapter implements MusicServiceAdapter {
-    private AmazonMusicDataAccessObject amazonDAO;
+    private final AmazonMusicDataAccessObject amazonDAO;
 
     public AmazonAdapter(AmazonMusicDataAccessObject amazonDAO) {
         this.amazonDAO = amazonDAO;
     }
 
-    @Override
-    public Playlist fetchPlaylist(String accessToken, String playlistId) throws Exception {
-        return amazonDAO.getPlaylist(accessToken, playlistId);
+    public String fetchPlaylist(String accessToken) throws Exception {
+        return AmazonMusicDataAccessObject.fetchUserPlaylists(accessToken);
     }
 
     @Override
+    public Playlist fetchPlaylist(String accessToken, String playlistId) throws Exception {
+        return null;
+    }
+
     public void createPlaylist(Playlist playlist, String accessToken) throws Exception {
-        amazonDAO.createPlaylist(playlist, accessToken);
+        List<String> trackIds = new ArrayList<>();
+        for (Song song : playlist.getSongs()) {
+            trackIds.add(song.getId());
+        }
+        String response = amazonDAO.createPlaylist(playlist.getName(), trackIds, accessToken);
     }
 }
