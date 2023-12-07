@@ -1,4 +1,5 @@
 package interface_adapter;
+
 import data_access.AmazonMusicDataAccessObject;
 import data_access.ExportPlaylistCSVDataAccessObject;
 import interface_adapter.ExportPlaylistCSV.ExportPlaylistCSVController;
@@ -7,14 +8,16 @@ import interface_adapter.ExportPlaylistCSV.ExportPlaylistCSVViewModel;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import data_access.AmazonMusicDataAccessObject;
 import data_access.SpotifyDataAccessObject;
 import entities.Account;
 import entities.Playlist;
 import interface_adapter.LogInSpotify.LogInSpotifyController;
 import interface_adapter.LogInSpotify.LogInSpotifyPresenter;
-import interface_adapter.LogInSpotify.LogInSpotifyViewModel;
 import interface_adapter.OpenSpotifyLogin.OpenSpotifyLoginController;
 import interface_adapter.OpenSpotifyLogin.OpenSpotifyLoginPresenter;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import interface_adapter.OpenSpotifyLogin.OpenSpotifyLoginState;
 import interface_adapter.OpenSpotifyLogin.OpenSpotifyLoginViewModel;
 import use_case.ExportPlaylistCSV.ExportPlaylistCSVInteractor;
@@ -26,14 +29,15 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Objects;
 
-public class MainApp extends JFrame {
+public class MainApp extends JFrame implements ActionListener, PropertyChangeListener {
 
     private DefaultListModel<String> spotifyListModel;
-    private java.util.List<Playlist> spotifyListPlaylists;
+    private java.util.List<Playlist> spotifyListPlaylists = new ArrayList<Playlist>();
     private DefaultListModel<String> amazonListModel;
     private DefaultListModel<String> spotifySongListModel;
     private DefaultListModel<String> amazonSongListModel;
@@ -51,6 +55,8 @@ public class MainApp extends JFrame {
     SpotifyDataAccessObject spotifyDataAccessObject;
 
     Account account = new Account();
+
+    MainViewModel viewModel = new MainViewModel();
 
 
     public MainApp() {
@@ -115,21 +121,23 @@ public class MainApp extends JFrame {
         addSongButton.addActionListener(e -> addSong());
         removeSongButton.addActionListener(e -> removeSong());
 
+        //property listener
+        viewModel.addPropertyChangeListener(this);
+
         //Data Access Objects
         spotifyDataAccessObject = new SpotifyDataAccessObject();
 
         //OpenLoginSpotify
-        OpenSpotifyLoginViewModel openSpotifyLoginViewModel = new OpenSpotifyLoginViewModel();
         OpenSpotifyLoginController openSpotifyLoginController = new OpenSpotifyLoginController(
                 new OpenLoginSpotifyInteractor(
-                        new OpenSpotifyLoginPresenter(openSpotifyLoginViewModel),spotifyDataAccessObject));
+                        new OpenSpotifyLoginPresenter(viewModel),spotifyDataAccessObject));
 
         spotifyLoginButton.addActionListener(
                 new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         if(e.getSource().equals(spotifyLoginButton)){
-                            OpenSpotifyLoginState currentState = openSpotifyLoginViewModel.getState();
+                            MainViewModelState currentState = viewModel.getState();
 
                             openSpotifyLoginController.execute();
                         }
@@ -233,6 +241,7 @@ public class MainApp extends JFrame {
         dialog.setVisible(true);
     }
 
+    @Override
     public void propertyChange(PropertyChangeEvent evt){
        MainViewModelState state = (MainViewModelState) evt.getNewValue();
         if (!Objects.equals(state.getCallbackUrl(), "")){
@@ -241,7 +250,7 @@ public class MainApp extends JFrame {
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(this, "Failed to open browser for signin");
             }
-
+            state.setCallbackUrl("");
             LogInSpotify();
         } else if (state.getSpotifyAccount() != null){
             updateSpotifyPlaylists(state);
@@ -251,6 +260,7 @@ public class MainApp extends JFrame {
 
     private void updateSpotifyPlaylists(MainViewModelState state) {
         spotifyListModel.clear();
+        spotifyLoginButton.setEnabled(true);
         java.util.List<Playlist> playlists = state.getSpotifyAccount().getPlaylists();
         int counter = 0;
         for (Playlist playlist : playlists){
@@ -258,6 +268,7 @@ public class MainApp extends JFrame {
             spotifyListPlaylists.add(counter, playlist);
             counter++;
         }
+        spotifyLoginButton.setText("Logged In");
     }
 
     private Playlist getSelectedSpotifyPlaylist(){
@@ -265,12 +276,11 @@ public class MainApp extends JFrame {
     }
 
     private void LogInSpotify(){
-
+        spotifyLoginButton.setText("Logging In");
         String uri = JOptionPane.showInputDialog("Please enter url of page after spotify sign in");
         String code = uri.substring(47);
 
-        LogInSpotifyViewModel logInSpotifyViewModel = new LogInSpotifyViewModel();
-        LogInSpotifyPresenter logInSpotifyPresenter = new LogInSpotifyPresenter();
+        LogInSpotifyPresenter logInSpotifyPresenter = new LogInSpotifyPresenter(viewModel);
         LogInSpotifyController logInSpotifyController = new LogInSpotifyController(new LogInSpotifyInteractor(logInSpotifyPresenter, spotifyDataAccessObject));
 
         logInSpotifyController.execute(code, account);
@@ -597,6 +607,11 @@ public class MainApp extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new MainApp().setVisible(true));
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+
     }
 }
 

@@ -1,7 +1,5 @@
 package interface_adapter;
 
-import interface_adapter.OpenSpotifyLogin.OpenSpotifyLoginState;
-
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 

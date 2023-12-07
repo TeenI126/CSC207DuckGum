@@ -1,7 +1,5 @@
 package entities;
 
-import Exceptions.ExpiredAccessTokenException;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;

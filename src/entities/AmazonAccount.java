@@ -1,12 +1,5 @@
 package entities;
 
-import com.sun.net.httpserver.HttpServer;
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
-import java.net.URL;
-import org.json.JSONObject;
-
 /**
  * Handles data access operations for Amazon Music.
  * Responsible for authenticating users and fetching user-related data from Amazon Music API.
@@ -25,35 +18,35 @@ public class AmazonAccount {
     private static String userName = "";
     private static String userEmail = "";
 
-    public static void main(String[] args) throws IOException {
-        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
-
-        server.createContext("/callback", exchange -> {
-            String query = exchange.getRequestURI().getQuery();
-            String responseText = "Authorization code not found.";
-            if (query != null && query.contains("code=")) {
-                String authorizationCode = query.substring(query.indexOf("code=") + 5);
-                JSONObject tokenJson = new JSONObject(exchangeAuthorizationCode(authorizationCode));
-                accessToken = tokenJson.getString("access_token");
-                refreshToken = tokenJson.optString("refresh_token");
-
-                String userProfile = fetchUserProfile(accessToken);
-                String userPlaylistsJson = fetchUserPlaylists(accessToken);
-                responseText = "User Profile: " + userProfile + "\n\nPlaylists: " + userPlaylistsJson;
-
-                // Update GUI with user profile and playlists
-                AmazonLoginApp.updateUserInfo(responseText);
-            }
-
-            exchange.sendResponseHeaders(200, responseText.length());
-            OutputStream os = exchange.getResponseBody();
-            os.write(responseText.getBytes());
-            os.close();
-        });
-
-        server.start();
-        System.out.println("Server started on port 8080. Navigate to http://localhost:8080/callback to see it in action.");
-    }
+//    public static void main(String[] args) throws IOException {
+//        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+//
+//        server.createContext("/callback", exchange -> {
+//            String query = exchange.getRequestURI().getQuery();
+//            String responseText = "Authorization code not found.";
+//            if (query != null && query.contains("code=")) {
+//                String authorizationCode = query.substring(query.indexOf("code=") + 5);
+//                JSONObject tokenJson = new JSONObject(exchangeAuthorizationCode(authorizationCode));
+//                accessToken = tokenJson.getString("access_token");
+//                refreshToken = tokenJson.optString("refresh_token");
+//
+//                String userProfile = fetchUserProfile(accessToken);
+//                String userPlaylistsJson = fetchUserPlaylists(accessToken);
+//                responseText = "User Profile: " + userProfile + "\n\nPlaylists: " + userPlaylistsJson;
+//
+//                // Update GUI with user profile and playlists
+//                AmazonLoginApp.updateUserInfo(responseText);
+//            }
+//
+//            exchange.sendResponseHeaders(200, responseText.length());
+//            OutputStream os = exchange.getResponseBody();
+//            os.write(responseText.getBytes());
+//            os.close();
+//        });
+//
+//        server.start();
+//        System.out.println("Server started on port 8080. Navigate to http://localhost:8080/callback to see it in action.");
+//    }
 //
 //    // Method to fetch the user profile using the access token
 //    private static String fetchUserProfile(String accessToken) {

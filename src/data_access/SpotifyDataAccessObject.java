@@ -34,7 +34,7 @@ public class SpotifyDataAccessObject implements OpenLoginSpotifyDataAccessInterf
      *
      * @param forceLogin: TRUE - makes user sign in regardless if DuckGum has already been authorized.
      */
-    String getLoginPage(boolean forceLogin){
+    public String getLoginPage(boolean forceLogin){
         JSONObject params = new JSONObject();
         params.put("client_id", clientID)
                 .put("response_type", "code")
