@@ -18,7 +18,6 @@ import java.util.Map;
 public class ExportPlaylistCSVDataAccessObject implements ExportPlaylistCSVDataAccessInterface {
 
     private Playlist playlist;
-    private final Map<String, Playlist> playlistMap = new HashMap<>();
 
     public ExportPlaylistCSVDataAccessObject(Playlist playlist) {
         this.playlist = playlist;
@@ -59,14 +58,4 @@ public class ExportPlaylistCSVDataAccessObject implements ExportPlaylistCSVDataA
         }
     }
     // double check this handles weird characters correctly
-
-    @Override
-    public boolean existsByName(String identifier) {
-        return playlistMap.containsKey(identifier);
-    }
-
-    @Override
-    public Playlist get(String playlist) {
-        return playlistMap.get(playlist);
-    }
 }
