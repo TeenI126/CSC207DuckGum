@@ -1,5 +1,9 @@
 package interface_adapter;
 import data_access.AmazonMusicDataAccessObject;
+import data_access.ExportPlaylistCSVDataAccessObject;
+import interface_adapter.ExportPlaylistCSV.ExportPlaylistCSVController;
+import interface_adapter.ExportPlaylistCSV.ExportPlaylistCSVPresenter;
+import interface_adapter.ExportPlaylistCSV.ExportPlaylistCSVViewModel;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -13,6 +17,7 @@ import interface_adapter.OpenSpotifyLogin.OpenSpotifyLoginController;
 import interface_adapter.OpenSpotifyLogin.OpenSpotifyLoginPresenter;
 import interface_adapter.OpenSpotifyLogin.OpenSpotifyLoginState;
 import interface_adapter.OpenSpotifyLogin.OpenSpotifyLoginViewModel;
+import use_case.ExportPlaylistCSV.ExportPlaylistCSVInteractor;
 import use_case.LogInSpotify.LogInSpotifyInteractor;
 import use_case.OpenLoginSpotify.OpenLoginSpotifyInteractor;
 
@@ -273,7 +278,14 @@ public class MainApp extends JFrame {
     }
 
     private void exportPlaylistCSV() {
-        // Dummy sync playlists logic
+        Playlist playlist = getSelectedSpotifyPlaylist();
+
+        ExportPlaylistCSVViewModel exportPlaylistCSVViewModel = new ExportPlaylistCSVViewModel();
+        ExportPlaylistCSVPresenter exportPlaylistCSVPresenter = new ExportPlaylistCSVPresenter(exportPlaylistCSVViewModel);
+        ExportPlaylistCSVDataAccessObject exportPlaylistCSVDataAccessObject = new ExportPlaylistCSVDataAccessObject(playlist);
+        ExportPlaylistCSVController exportPlaylistCSVController = new ExportPlaylistCSVController(new ExportPlaylistCSVInteractor(exportPlaylistCSVDataAccessObject, exportPlaylistCSVPresenter));
+        exportPlaylistCSVController.execute(playlist);
+        // Dummy export csv logic
         // ...
     }
 
