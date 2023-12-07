@@ -30,11 +30,6 @@ public abstract class MusicService {
         return accessToken;
     }
 
-
-    public String getUserAccessToken() {
-        return accessToken;
-    }
-
     public LocalDateTime getAccessTokenExpires(){
         return accessTokenExpires;
     }

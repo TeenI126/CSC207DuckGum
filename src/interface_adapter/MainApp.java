@@ -1,5 +1,9 @@
 package interface_adapter;
 import data_access.AmazonMusicDataAccessObject;
+import data_access.ExportPlaylistCSVDataAccessObject;
+import interface_adapter.ExportPlaylistCSV.ExportPlaylistCSVController;
+import interface_adapter.ExportPlaylistCSV.ExportPlaylistCSVPresenter;
+import interface_adapter.ExportPlaylistCSV.ExportPlaylistCSVViewModel;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -13,18 +17,17 @@ import interface_adapter.OpenSpotifyLogin.OpenSpotifyLoginController;
 import interface_adapter.OpenSpotifyLogin.OpenSpotifyLoginPresenter;
 import interface_adapter.OpenSpotifyLogin.OpenSpotifyLoginState;
 import interface_adapter.OpenSpotifyLogin.OpenSpotifyLoginViewModel;
+import use_case.ExportPlaylistCSV.ExportPlaylistCSVInteractor;
 import use_case.LogInSpotify.LogInSpotifyInteractor;
 import use_case.OpenLoginSpotify.OpenLoginSpotifyInteractor;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.util.Random;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Objects;
 
 public class MainApp extends JFrame {
@@ -40,7 +43,7 @@ public class MainApp extends JFrame {
     private JList<String> amazonSongList;
     private JButton spotifyLoginButton;
     private JButton amazonLoginButton;
-    private JButton syncPlaylistsButton;
+    private JButton exportCSVButton;
 
     private static final String CLIENT_ID = "amzn1.application-oa2-client.951516002f594c19922fd8aa22fa93fc";
     private static final String REDIRECT_URI = "http://localhost:8080/callback";
@@ -89,8 +92,8 @@ public class MainApp extends JFrame {
         JButton transferToSpotifyButton = new JButton("Transfer to Spotify");
         transferPanel.add(transferToAmazonButton);
         transferPanel.add(transferToSpotifyButton);
-        syncPlaylistsButton = new JButton("Sync Playlists");
-        transferPanel.add(syncPlaylistsButton);
+        exportCSVButton = new JButton("Export playlists to CSV");
+        transferPanel.add(exportCSVButton);
 
         // Add song and remove song buttons
         JButton addSongButton = new JButton("Add Song");
@@ -108,7 +111,7 @@ public class MainApp extends JFrame {
         amazonLoginButton.addActionListener(e -> loginToAmazon());
         transferToAmazonButton.addActionListener(e -> transferPlaylists("Spotify to Amazon Music"));
         transferToSpotifyButton.addActionListener(e -> transferPlaylists("Amazon Music to Spotify"));
-        syncPlaylistsButton.addActionListener(e -> syncPlaylists());
+        exportCSVButton.addActionListener(e -> exportPlaylistCSV());
         addSongButton.addActionListener(e -> addSong());
         removeSongButton.addActionListener(e -> removeSong());
 
@@ -274,8 +277,22 @@ public class MainApp extends JFrame {
 
     }
 
-    private void syncPlaylists() {
-        // Dummy sync playlists logic
+    private void exportPlaylistCSV() {
+        Playlist playlist = getSelectedSpotifyPlaylist();
+
+        ExportPlaylistCSVViewModel exportPlaylistCSVViewModel = new ExportPlaylistCSVViewModel();
+        ExportPlaylistCSVPresenter exportPlaylistCSVPresenter = new ExportPlaylistCSVPresenter(exportPlaylistCSVViewModel);
+        ExportPlaylistCSVDataAccessObject exportPlaylistCSVDataAccessObject = new ExportPlaylistCSVDataAccessObject(playlist);
+        ExportPlaylistCSVController exportPlaylistCSVController = new ExportPlaylistCSVController(new ExportPlaylistCSVInteractor(exportPlaylistCSVDataAccessObject, exportPlaylistCSVPresenter));
+        exportPlaylistCSVController.execute(playlist);
+
+        JOptionPane pane = new JOptionPane(playlist.getName() + " exported as CSV!", JOptionPane.INFORMATION_MESSAGE);
+        JDialog dialog = pane.createDialog(this, "Status");
+        Timer timer = new Timer(2000, e -> dialog.dispose());
+        timer.setRepeats(false);
+        timer.start();
+        dialog.setVisible(true);
+        // Dummy export csv logic
         // ...
     }
 

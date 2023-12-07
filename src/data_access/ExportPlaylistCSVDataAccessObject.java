@@ -1,6 +1,7 @@
 package data_access;
 
 import entities.Account;
+import entities.MusicService;
 import entities.Playlist;
 import entities.Song;
 import use_case.ExportPlaylistCSV.ExportPlaylistCSVDataAccessInterface;
@@ -16,14 +17,11 @@ import java.util.Map;
 
 public class ExportPlaylistCSVDataAccessObject implements ExportPlaylistCSVDataAccessInterface {
 
-    private List<Playlist> playlists;
+    private Playlist playlist;
     private final Map<String, Playlist> playlistMap = new HashMap<>();
 
-    public ExportPlaylistCSVDataAccessObject(Account account) {
-        this.playlists = account.getPlaylists();
-        for (Playlist playlist : playlists) {
-            playlistMap.put(playlist.getName(), playlist);
-        }
+    public ExportPlaylistCSVDataAccessObject(Playlist playlist) {
+        this.playlist = playlist;
     }
 
     public void writeCSV(String csvPath, Playlist playlist) {
