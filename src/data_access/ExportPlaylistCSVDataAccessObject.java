@@ -1,7 +1,5 @@
 package data_access;
 
-import entities.Account;
-import entities.MusicService;
 import entities.Playlist;
 import entities.Song;
 import use_case.ExportPlaylistCSV.ExportPlaylistCSVDataAccessInterface;
@@ -10,15 +8,12 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 public class ExportPlaylistCSVDataAccessObject implements ExportPlaylistCSVDataAccessInterface {
 
     private Playlist playlist;
-    private final Map<String, Playlist> playlistMap = new HashMap<>();
 
     public ExportPlaylistCSVDataAccessObject(Playlist playlist) {
         this.playlist = playlist;
@@ -59,14 +54,4 @@ public class ExportPlaylistCSVDataAccessObject implements ExportPlaylistCSVDataA
         }
     }
     // double check this handles weird characters correctly
-
-    @Override
-    public boolean existsByName(String identifier) {
-        return playlistMap.containsKey(identifier);
-    }
-
-    @Override
-    public Playlist get(String playlist) {
-        return playlistMap.get(playlist);
-    }
 }
