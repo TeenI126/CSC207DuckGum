@@ -18,8 +18,6 @@ import interface_adapter.OpenSpotifyLogin.OpenSpotifyLoginController;
 import interface_adapter.OpenSpotifyLogin.OpenSpotifyLoginPresenter;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import interface_adapter.OpenSpotifyLogin.OpenSpotifyLoginState;
-import interface_adapter.OpenSpotifyLogin.OpenSpotifyLoginViewModel;
 import use_case.ExportPlaylistCSV.ExportPlaylistCSVInteractor;
 import use_case.LogInSpotify.LogInSpotifyInteractor;
 import use_case.OpenLoginSpotify.OpenLoginSpotifyInteractor;
@@ -32,6 +30,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class MainApp extends JFrame implements ActionListener, PropertyChangeListener {
