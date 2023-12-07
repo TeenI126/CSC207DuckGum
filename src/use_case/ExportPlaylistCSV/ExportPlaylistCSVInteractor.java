@@ -1,6 +1,6 @@
 package use_case.ExportPlaylistCSV;
 
-import entities.Account;
+import entities.MusicService;
 import entities.Playlist;
 
 public class ExportPlaylistCSVInteractor implements ExportPlaylistCSVInputBoundary {
@@ -16,7 +16,6 @@ public class ExportPlaylistCSVInteractor implements ExportPlaylistCSVInputBounda
         if (exportPlaylistCSVDataAccessObject.existsByName(exportPlaylistCSVInputData.getPlaylistName())) {
             exportPlaylistCSVPresenter.prepareFailView("Playlist does not exist");
         } else {
-            Account account = exportPlaylistCSVInputData.getAccount();
             Playlist playlist = exportPlaylistCSVDataAccessObject.get(exportPlaylistCSVInputData.getPlaylistName());
             exportPlaylistCSVDataAccessObject.writeCSV(playlist.getName(), playlist);
             ExportPlaylistCSVOutputData exportPlaylistCSVOutputData = new ExportPlaylistCSVOutputData(playlist, false);
