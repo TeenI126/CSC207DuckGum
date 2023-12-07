@@ -285,6 +285,13 @@ public class MainApp extends JFrame {
         ExportPlaylistCSVDataAccessObject exportPlaylistCSVDataAccessObject = new ExportPlaylistCSVDataAccessObject(playlist);
         ExportPlaylistCSVController exportPlaylistCSVController = new ExportPlaylistCSVController(new ExportPlaylistCSVInteractor(exportPlaylistCSVDataAccessObject, exportPlaylistCSVPresenter));
         exportPlaylistCSVController.execute(playlist);
+
+        JOptionPane pane = new JOptionPane(playlist.getName() + " exported as CSV!", JOptionPane.INFORMATION_MESSAGE);
+        JDialog dialog = pane.createDialog(this, "Status");
+        Timer timer = new Timer(2000, e -> dialog.dispose());
+        timer.setRepeats(false);
+        timer.start();
+        dialog.setVisible(true);
         // Dummy export csv logic
         // ...
     }
