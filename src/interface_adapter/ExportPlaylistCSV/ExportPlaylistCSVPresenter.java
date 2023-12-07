@@ -18,11 +18,4 @@ public class ExportPlaylistCSVPresenter implements ExportPlaylistCSVOutputBounda
         exportPlaylistCSVViewModel.firePropertyChanged();
     }
     // Switch views?
-
-    @Override
-    public void prepareFailView(String error) {
-        ExportPlaylistCSVState exportPlaylistCSVState = exportPlaylistCSVViewModel.getState();
-        exportPlaylistCSVState.setPlaylistError(error);
-        exportPlaylistCSVViewModel.firePropertyChanged();
-    }
 }

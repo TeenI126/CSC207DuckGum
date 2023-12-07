@@ -1,6 +1,5 @@
 package use_case.ExportPlaylistCSV;
 
-import entities.MusicService;
 import entities.Playlist;
 
 public class ExportPlaylistCSVInteractor implements ExportPlaylistCSVInputBoundary {
