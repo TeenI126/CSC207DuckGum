@@ -1,5 +1,7 @@
 package interface_adapter;
 
+import entities.Playlist;
+import entities.Song;
 import entities.SpotifyAccount;
 
 public class MainViewModelState {
@@ -20,5 +22,17 @@ public class MainViewModelState {
     }
     public String getCallbackUrl() {
         return callbackUrl;
+    }
+
+    public void setPlaylist(Playlist playlist) {
+    }
+
+    public void setSong(Song song) {
+    }
+
+    public void addSongError(String error) {
+    }
+
+    public void setPlaylistError(String error) {
     }
 }

@@ -22,4 +22,7 @@ public class MainViewModel extends ViewModel{
     public void addPropertyChangeListener(PropertyChangeListener propertyChangeListener) {
         support.addPropertyChangeListener(propertyChangeListener);
     }
+
+    public void setState(MainViewModelState addSongState) {
+    }
 }

@@ -4,9 +4,11 @@ import data_access.SpotifyDataAccessObject;
 import entities.Account;
 import interface_adapter.LogInSpotify.LogInSpotifyController;
 import interface_adapter.OpenSpotifyLogin.OpenSpotifyLoginController;
+import org.junit.Test;
 import use_case.LogInSpotify.LogInSpotifyInputBoundary;
 import use_case.LogInSpotify.LogInSpotifyInteractor;
 import use_case.LogInSpotify.LogInSpotifyOutputBoundary;
+import use_case.LogInSpotify.LogInSpotifyOutputData;
 import use_case.OpenLoginSpotify.OpenLoginSpotifyInputBoundary;
 import use_case.OpenLoginSpotify.OpenLoginSpotifyInteractor;
 import use_case.OpenLoginSpotify.OpenLoginSpotifyOutputBoundary;
@@ -17,8 +19,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.net.URI;
 
-import org.junit.Test;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 
 public class OpenLoginSpotifyAndLogInSpotifyTest { //testing use cases together as they will always be used together.
@@ -53,8 +54,9 @@ public class OpenLoginSpotifyAndLogInSpotifyTest { //testing use cases together 
     }
     private class LogInSpotifyPresenterSpoof implements LogInSpotifyOutputBoundary{
 
+
         @Override
-        public void prepareSuccessView() {
+        public void loadSpotifyAccount(LogInSpotifyOutputData data) {
 
         }
 

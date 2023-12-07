@@ -1,18 +1,20 @@
 package interface_adapter.ExportPlaylistCSV;
 
+import interface_adapter.MainViewModel;
+import interface_adapter.MainViewModelState;
 import use_case.ExportPlaylistCSV.ExportPlaylistCSVOutputBoundary;
 import use_case.ExportPlaylistCSV.ExportPlaylistCSVOutputData;
 
 public class ExportPlaylistCSVPresenter implements ExportPlaylistCSVOutputBoundary {
 
-    private ExportPlaylistCSVViewModel exportPlaylistCSVViewModel;
+    private MainViewModel exportPlaylistCSVViewModel;
 
-    public ExportPlaylistCSVPresenter(ExportPlaylistCSVViewModel exportPlaylistCSVViewModel) {
+    public ExportPlaylistCSVPresenter(MainViewModel exportPlaylistCSVViewModel) {
         this.exportPlaylistCSVViewModel = exportPlaylistCSVViewModel;
     }
     @Override
     public void prepareSuccessView(ExportPlaylistCSVOutputData response) {
-        ExportPlaylistCSVState exportPlaylistCSVState = exportPlaylistCSVViewModel.getState();
+        MainViewModelState exportPlaylistCSVState = exportPlaylistCSVViewModel.getState();
         exportPlaylistCSVState.setPlaylist(response.getPlaylist());
         exportPlaylistCSVViewModel.setState(exportPlaylistCSVState);
         exportPlaylistCSVViewModel.firePropertyChanged();
@@ -21,7 +23,7 @@ public class ExportPlaylistCSVPresenter implements ExportPlaylistCSVOutputBounda
 
     @Override
     public void prepareFailView(String error) {
-        ExportPlaylistCSVState exportPlaylistCSVState = exportPlaylistCSVViewModel.getState();
+        MainViewModelState exportPlaylistCSVState = exportPlaylistCSVViewModel.getState();
         exportPlaylistCSVState.setPlaylistError(error);
         exportPlaylistCSVViewModel.firePropertyChanged();
     }
