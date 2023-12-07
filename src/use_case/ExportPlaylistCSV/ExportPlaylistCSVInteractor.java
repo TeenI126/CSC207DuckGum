@@ -16,7 +16,6 @@ public class ExportPlaylistCSVInteractor implements ExportPlaylistCSVInputBounda
         if (exportPlaylistCSVDataAccessObject.existsByName(exportPlaylistCSVInputData.getPlaylistName())) {
             exportPlaylistCSVPresenter.prepareFailView("Playlist does not exist");
         } else {
-            MusicService musicService = exportPlaylistCSVInputData.getMusicService();
             Playlist playlist = exportPlaylistCSVDataAccessObject.get(exportPlaylistCSVInputData.getPlaylistName());
             exportPlaylistCSVDataAccessObject.writeCSV(playlist.getName(), playlist);
             ExportPlaylistCSVOutputData exportPlaylistCSVOutputData = new ExportPlaylistCSVOutputData(playlist, false);

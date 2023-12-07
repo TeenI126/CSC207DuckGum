@@ -17,14 +17,11 @@ import java.util.Map;
 
 public class ExportPlaylistCSVDataAccessObject implements ExportPlaylistCSVDataAccessInterface {
 
-    private List<Playlist> playlists;
+    private Playlist playlist;
     private final Map<String, Playlist> playlistMap = new HashMap<>();
 
-    public ExportPlaylistCSVDataAccessObject(MusicService musicService) {
-        this.playlists = musicService.getPlaylists();
-        for (Playlist playlist : playlists) {
-            playlistMap.put(playlist.getName(), playlist);
-        }
+    public ExportPlaylistCSVDataAccessObject(Playlist playlist) {
+        this.playlist = playlist;
     }
 
     public void writeCSV(String csvPath, Playlist playlist) {

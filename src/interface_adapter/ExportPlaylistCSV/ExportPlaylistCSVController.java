@@ -1,6 +1,6 @@
 package interface_adapter.ExportPlaylistCSV;
 
-import entities.MusicService;
+import entities.Playlist;
 import use_case.ExportPlaylistCSV.ExportPlaylistCSVInputBoundary;
 import use_case.ExportPlaylistCSV.ExportPlaylistCSVInputData;
 
@@ -11,8 +11,8 @@ public class ExportPlaylistCSVController {
         this.exportPlaylistCSVUseCaseInteractor = exportPlaylistCSVUseCaseInteractor;
     }
 
-    public void execute(String playlist, MusicService musicService) {
-        ExportPlaylistCSVInputData exportPlaylistCSVInputData = new ExportPlaylistCSVInputData(playlist, musicService);
+    public void execute(Playlist playlist) {
+        ExportPlaylistCSVInputData exportPlaylistCSVInputData = new ExportPlaylistCSVInputData(playlist);
 
         exportPlaylistCSVUseCaseInteractor.execute(exportPlaylistCSVInputData);
     }

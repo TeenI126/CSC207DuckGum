@@ -1,21 +1,19 @@
 package use_case.ExportPlaylistCSV;
 
-import entities.MusicService;
+import entities.Playlist;
 
 public class ExportPlaylistCSVInputData {
-    final private String playlist;
-    final private MusicService musicService;
+    final private Playlist playlist;
 
-    public ExportPlaylistCSVInputData(String playlist, MusicService musicService) {
+    public ExportPlaylistCSVInputData(Playlist playlist) {
         this.playlist = playlist;
-        this.musicService = musicService;
     }
 
     String getPlaylistName() {
-        return playlist;
+        return playlist.getName();
     }
 
-    MusicService getMusicService() {
-        return musicService;
+    Playlist getPlaylist() {
+        return playlist;
     }
 }
